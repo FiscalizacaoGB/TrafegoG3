@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<title>Painel de Frota — Pirajá</title>
+<style>
+  :root{
+    --bg:#0b1118; --painel:#121b25; --card:#16212d; --borda:#243445; --texto:#e6edf3; --fraco:#8ea3b8;
+    --verde:#22c55e; --ambar:#f59e0b; --azul:#3b82f6; --vermelho:#ef4444; --roxo:#a78bfa; --ciano:#22d3ee; --cinza:#64748b;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:var(--bg);color:var(--texto);font:14px/1.35 "Segoe UI",Roboto,Arial,sans-serif}
+  button,input,select,textarea{font:inherit}
+  header{display:flex;align-items:center;gap:16px;padding:10px 18px;background:var(--painel);border-bottom:1px solid var(--borda);position:sticky;top:0;z-index:5}
+  header h1{font-size:18px;margin:0;font-weight:700;letter-spacing:.2px}
+  .relogio{font-variant-numeric:tabular-nums;font-size:22px;font-weight:700}
+  .sub{color:var(--fraco);font-size:12px}
+  .esp{flex:1}
+  .hd-campo{display:flex;align-items:center;gap:6px}
+  .hd-campo input{background:var(--card);border:1px solid var(--borda);color:var(--texto);border-radius:6px;padding:6px 8px;width:160px}
+  .btn{background:var(--card);border:1px solid var(--borda);color:var(--texto);border-radius:6px;padding:7px 12px;cursor:pointer}
+  .btn:hover{border-color:#3b5068}
+  .btn.prim{background:var(--azul);border-color:var(--azul);color:#fff;font-weight:600}
+  .btn.perigo{background:var(--vermelho);border-color:var(--vermelho);color:#fff;font-weight:600}
+  .btn.ok{background:var(--verde);border-color:var(--verde);color:#062b14;font-weight:700}
+  .btn.som-off{border-color:var(--ambar);color:var(--ambar)}
+  .ponto{width:9px;height:9px;border-radius:50%;background:var(--verde);display:inline-block}
+  .ponto.erro{background:var(--vermelho)} .ponto.carregando{background:var(--ambar)}
+
+  .kpis{display:grid;grid-template-columns:repeat(8,minmax(0,1fr));gap:10px;padding:14px 18px 6px}
+  .kpi{background:var(--card);border:1px solid var(--borda);border-left:4px solid var(--c,var(--cinza));border-radius:8px;padding:10px 12px;cursor:pointer;user-select:none}
+  .kpi .n{font-size:28px;font-weight:800;font-variant-numeric:tabular-nums;line-height:1.1}
+  .kpi .l{color:var(--fraco);font-size:12px;text-transform:uppercase;letter-spacing:.4px}
+  .kpi.ativo{outline:2px solid var(--c,var(--azul));background:#1b2836}
+
+  .barra{display:flex;gap:10px;align-items:center;padding:8px 18px}
+  .barra input{flex:0 0 320px;background:var(--card);border:1px solid var(--borda);color:var(--texto);border-radius:6px;padding:8px 10px}
+  .avisos{display:flex;flex-direction:column;gap:4px;padding:0 18px 6px}
+  .aviso{color:#fcd34d;background:#2a2210;border:1px solid #4a3a12;border-radius:6px;padding:5px 10px;font-size:12px}
+
+  main{display:grid;grid-template-columns:1fr 420px;gap:14px;padding:6px 18px 18px;align-items:start}
+  .grade{display:grid;grid-template-columns:repeat(auto-fill,minmax(215px,1fr));gap:10px}
+  .card{background:var(--card);border:1px solid var(--borda);border-top:4px solid var(--c);border-radius:8px;padding:9px 11px;cursor:pointer;display:flex;flex-direction:column;gap:5px;min-height:120px}
+  .card:hover{border-color:#3b5068}
+  .card .topo{display:flex;align-items:baseline;gap:8px}
+  .card .num{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+  .card .placa{color:var(--fraco);font-size:12px}
+  .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 7px;border-radius:999px;background:color-mix(in srgb,var(--c) 22%,transparent);color:var(--c);border:1px solid color-mix(in srgb,var(--c) 50%,transparent);white-space:nowrap}
+  .card .linha{font-size:12px;color:var(--fraco);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .card .info{font-size:12.5px}
+  .tag{font-size:11px;padding:1px 6px;border-radius:4px;background:#1e2b39;color:var(--fraco);margin-right:4px}
+  .tag.alerta{background:#3a1717;color:#fca5a5}
+  .comb{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--fraco)}
+  .comb .trilho{flex:1;height:6px;border-radius:3px;background:#0e161f;overflow:hidden}
+  .comb .nivel{height:100%;background:var(--verde)}
+  .comb.baixo .nivel{background:var(--vermelho)} .comb.baixo{color:#fca5a5;font-weight:700}
+
+  aside{position:sticky;top:64px;display:flex;flex-direction:column;gap:12px;max-height:calc(100vh - 80px)}
+  .bloco{background:var(--painel);border:1px solid var(--borda);border-radius:8px;display:flex;flex-direction:column;min-height:0}
+  .bloco h2{font-size:13px;text-transform:uppercase;letter-spacing:.5px;color:var(--fraco);margin:0;padding:10px 12px;border-bottom:1px solid var(--borda);display:flex;justify-content:space-between}
+  .lista{overflow:auto;flex:1}
+  .saida{display:grid;grid-template-columns:52px 1fr auto;gap:8px;padding:8px 12px;border-bottom:1px solid #1b2836;align-items:center}
+  .saida .h{font-weight:800;font-variant-numeric:tabular-nums;font-size:15px}
+  .saida .h small{display:block;color:var(--fraco);font-weight:500;font-size:11px}
+  .saida .op{font-size:12.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .saida .vm{font-size:12px;color:var(--fraco)}
+  .saida.passada{opacity:.45}
+  .historico .item{padding:7px 12px;border-bottom:1px solid #1b2836;font-size:12px}
+
+  /* ALARME */
+  .overlay{position:fixed;inset:0;background:rgba(0,0,0,.72);display:none;align-items:center;justify-content:center;z-index:50}
+  .overlay.aberto{display:flex}
+  .alarme{width:min(640px,94vw);background:#1a0d0d;border:3px solid var(--vermelho);border-radius:12px;padding:18px 20px;animation:pisca 1s infinite}
+  @keyframes pisca{0%,100%{box-shadow:0 0 0 0 rgba(239,68,68,.9);border-color:#ef4444}50%{box-shadow:0 0 60px 18px rgba(239,68,68,.55);border-color:#fca5a5}}
+  .flash{position:fixed;inset:0;pointer-events:none;z-index:49;display:none;animation:fundo 1s infinite}
+  .flash.on{display:block}
+  @keyframes fundo{0%,100%{background:rgba(239,68,68,0)}50%{background:rgba(239,68,68,.22)}}
+  .alarme h3{margin:0 0 4px;color:#fca5a5;font-size:14px;text-transform:uppercase;letter-spacing:.6px}
+  .alarme .grande{font-size:30px;font-weight:800;margin:4px 0}
+  .alarme .det{color:#fecaca;margin-bottom:10px}
+  .alarme fieldset{border:1px solid #5b2323;border-radius:8px;padding:10px 12px;margin:10px 0}
+  .alarme label{display:flex;gap:8px;align-items:center;margin:6px 0;cursor:pointer}
+  .campo{display:flex;flex-direction:column;gap:4px;margin:8px 0}
+  .campo input,.campo textarea,.campo select{background:#0e141b;border:1px solid var(--borda);color:var(--texto);border-radius:6px;padding:8px;width:100%;min-width:0}
+  .erro-msg{color:#fca5a5;font-size:12px;min-height:16px}
+
+  /* GAVETA DO VEÍCULO */
+  .gaveta{width:min(560px,96vw);max-height:90vh;overflow:auto;background:var(--painel);border:1px solid var(--borda);border-radius:12px;padding:16px 18px}
+  .gaveta h3{margin:0;font-size:22px}
+  .tab{width:100%;border-collapse:collapse;font-size:12.5px;margin:6px 0}
+  .tab td{padding:4px 6px;border-bottom:1px solid #1b2836;vertical-align:top}
+  .tab td:first-child{color:var(--fraco);width:40%}
+  .secao{margin-top:12px;font-size:12px;color:var(--fraco);text-transform:uppercase;letter-spacing:.5px}
+  .acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+  .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:#1e293b;border:1px solid var(--borda);padding:10px 16px;border-radius:8px;z-index:60;display:none}
+  .vazio{color:var(--fraco);padding:14px;text-align:center}
+  @media (max-width:1300px){.kpis{grid-template-columns:repeat(5,minmax(0,1fr))} main{grid-template-columns:1fr} aside{position:static;max-height:none}}
+</style>
+</head>
+<body>
+<header>
+  <div>
+    <h1>Painel de Frota — Pirajá</h1>
+    <div class="sub"><span id="data"></span> · <span class="ponto carregando" id="ponto"></span> <span id="atualizado">carregando…</span></div>
+  </div>
+  <div class="relogio" id="relogio">--:--:--</div>
+  <div class="esp"></div>
+  <div class="hd-campo"><span class="sub">Operador</span><input id="operador" placeholder="Seu nome" autocomplete="name"></div>
+  <button class="btn som-off" id="btnSom" title="O navegador só toca som depois de um clique na página">🔇 Ativar som</button>
+  <button class="btn" id="btnAtualizar">Atualizar</button>
+</header>
+
+<section class="kpis" id="kpis"></section>
+<div class="barra">
+  <input id="busca" placeholder="Buscar veículo, placa, linha, operação ou motorista…">
+  <span class="sub" id="contagem"></span>
+</div>
+<div class="avisos" id="avisos"></div>
+
+<main>
+  <section class="grade" id="grade"></section>
+  <aside>
+    <div class="bloco" style="flex:2">
+      <h2>Próximas saídas <span id="nSaidas"></span></h2>
+      <div class="lista" id="saidas"></div>
+    </div>
+    <div class="bloco historico" style="flex:1">
+      <h2>Alertas em aberto <span id="nAlertas"></span></h2>
+      <div class="lista" id="listaAlertas"></div>
+    </div>
+  </aside>
+</main>
+
+<div class="flash" id="flash"></div>
+<div class="overlay" id="ovAlarme">
+  <div class="alarme" role="alertdialog" aria-live="assertive">
+    <h3 id="alTipo">Alerta</h3>
+    <div class="sub" id="alFila"></div>
+    <div class="grande" id="alTitulo"></div>
+    <div class="det" id="alDet"></div>
+    <fieldset>
+      <label><input type="radio" name="resp" value="CONFIRMADO"> Confirmo o mesmo veículo</label>
+      <label><input type="radio" name="resp" value="ALTERADO"> Sugerir alteração de veículo</label>
+      <div id="alAlterar" style="display:none">
+        <div class="campo"><span>Veículo sugerido</span><input id="alVeic" inputmode="numeric" placeholder="Ex.: 9560"></div>
+      </div>
+      <div class="campo"><span id="alObsLbl">Observação (opcional)</span><textarea id="alObs" rows="2"></textarea></div>
+    </fieldset>
+    <div class="erro-msg" id="alErro"></div>
+    <div class="acoes"><button class="btn ok" id="alBaixar">Dar baixa no alerta</button><span class="sub" id="alSomAviso"></span></div>
+  </div>
+</div>
+
+<div class="overlay" id="ovVeic"><div class="gaveta" id="gaveta"></div></div>
+<div class="toast" id="toast"></div>
+
+<script>
+// ====== CONFIGURAÇÃO (versão GitHub) ======
+const API_URL = 'https://script.google.com/macros/s/AKfycbw7nGL731INBUOkvL9xIVYyKR3JqkhrQspA1tbuYgXgZbEr6ekqU1gTmcqNZt8zmveXQg/exec';
+const CHAVE = 'frota-a2bcac11fa10d649';   // igual a CHAVE_ACESSO do Painel.gs
+const INTERVALO = 60;  // segundos entre atualizações
+// ==========================================
+const STATUS = {
+  DISPONIVEL:      {txt:'Disponível',          c:'var(--verde)'},
+  ESCALADO:        {txt:'Escalado',            c:'var(--ambar)'},
+  EM_OPERACAO:     {txt:'Em operação',         c:'var(--azul)'},
+  FORA_SEM_ESCALA: {txt:'Fora s/ escala',      c:'var(--ciano)'},
+  RETIDO:          {txt:'Retido',              c:'var(--vermelho)'},
+  INOPERANTE:      {txt:'Inoperante',          c:'var(--roxo)'}
+};
+const ORDEM = ['RETIDO','INOPERANTE','ESCALADO','DISPONIVEL','FORA_SEM_ESCALA','EM_OPERACAO'];
+const KPIS = [
+  ['TOTAL','Frota','var(--cinza)'],['DISPONIVEL','Disponíveis','var(--verde)'],['ESCALADO','Escalados','var(--ambar)'],
+  ['EM_OPERACAO','Em operação','var(--azul)'],['FORA_SEM_ESCALA','Fora s/ escala','var(--ciano)'],['RETIDO','Retidos','var(--vermelho)'],
+  ['INOPERANTE','Inoperantes','var(--roxo)'],['ABASTECER','Abastecer','#fb7185']
+];
+const SIT = {
+  NO_LOCAL:['No local','var(--verde)'], FORA:['Fora do local','var(--vermelho)'], SEM_GPS:['GPS antigo','var(--ambar)'],
+  SEM_RASTREADOR:['Sem rastreador','var(--cinza)'], SEM_LOCAL:['Local não cadastrado','var(--cinza)'],
+  RETIDO:['Retido','var(--vermelho)'], INOPERANTE:['Inoperante','var(--roxo)'], SAIU:['Horário passou','var(--cinza)']
+};
+const TIPO_ALERTA = {
+  FORA_DO_LOCAL:'Veículo fora do local de partida', SEM_GPS:'Veículo sem posição de GPS',
+  VEICULO_RETIDO:'Veículo retido está escalado', VEICULO_INOPERANTE:'Veículo inoperante está escalado',
+  COMBUSTIVEL:'Veículo escalado precisa abastecer'
+};
+
+let dados = null, filtro = 'TOTAL', fila = [], alertaAtual = null, ocupado = false, offsetRelogio = 0;
+const $ = id => document.getElementById(id);
+const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const dist = m => m == null ? '' : (m >= 1000 ? (m/1000).toFixed(1).replace('.',',') + ' km' : m + ' m');
+
+/* ---------- servidor (google.script.run ou simulação local) ---------- */
+async function chamar(fn, ...args){
+  if (window.SIMULADOR) return window.SIMULADOR[fn](...args);
+  let r;
+  try {
+    r = fn === 'getPainel'
+      ? await fetch(API_URL + '?acao=dados&chave=' + encodeURIComponent(CHAVE) + '&t=' + Date.now())
+      : await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify({ acao: fn, chave: CHAVE, args: args }) });
+  } catch (e) { throw new Error('sem conexão com o Google'); }
+  let j;
+  try { j = await r.json(); } catch (e) { throw new Error('resposta inválida (confira se a implantação está como "Qualquer pessoa")'); }
+  if (!j.ok) throw new Error(j.erro || 'erro no servidor');
+  return j.dados;
+}
+
+async function carregar(){
+  if (ocupado) return;
+  ocupado = true; $('ponto').className = 'ponto carregando';
+  try {
+    dados = await chamar('getPainel');
+    const [h,m,s] = dados.agora.split(':').map(Number);
+    const agoraLocal = new Date(); offsetRelogio = (h*3600+m*60+s) - (agoraLocal.getHours()*3600+agoraLocal.getMinutes()*60+agoraLocal.getSeconds());
+    $('data').textContent = dados.data;
+    $('atualizado').textContent = 'atualizado às ' + dados.agora.slice(0,5) + ' · próxima em ' + INTERVALO + ' s';
+    $('ponto').className = 'ponto';
+    render();
+  } catch (e) {
+    $('ponto').className = 'ponto erro';
+    $('atualizado').textContent = 'erro ao atualizar: ' + e.message + ' (tentando de novo)';
+  } finally { ocupado = false; }
+}
+
+/* ---------- render ---------- */
+function render(){
+  const k = dados.kpis;
+  $('kpis').innerHTML = KPIS.map(([id,l,c]) =>
+    `<div class="kpi ${filtro===id?'ativo':''}" style="--c:${c}" data-k="${id}"><div class="n">${k[id]||0}</div><div class="l">${l}</div></div>`).join('');
+  $('avisos').innerHTML = (dados.avisos||[]).map(a => `<div class="aviso">⚠ ${esc(a)}</div>`).join('');
+  renderGrade(); renderSaidas(); renderAlertas();
+}
+
+function passaFiltro(v){
+  if (filtro === 'TOTAL') return true;
+  if (filtro === 'ABASTECER') return v.combustivel && v.combustivel.precisa;
+  return v.status === filtro;
+}
+
+function renderGrade(){
+  const q = $('busca').value.trim().toUpperCase();
+  const lista = dados.veiculos.filter(passaFiltro).filter(v => !q || [v.num,v.placa,v.linha,v.servico,
+    ...(v.escalas||[]).map(e => e.op + ' ' + e.mot)].join(' ').toUpperCase().includes(q))
+    .sort((a,b) => ORDEM.indexOf(a.status)-ORDEM.indexOf(b.status) || Number(a.num)-Number(b.num));
+  $('contagem').textContent = lista.length + ' veículo(s)';
+  $('grade').innerHTML = lista.length ? lista.map(card).join('') : '<div class="vazio">Nenhum veículo neste filtro.</div>';
+}
+
+function card(v){
+  const s = STATUS[v.status] || {txt:v.status,c:'var(--cinza)'};
+  let info = '';
+  if (v.status === 'RETIDO' && v.retencao) info = `<b>${esc(v.retencao.defeito)}</b><br><span class="sub">${esc(v.retencao.status)} · ${esc(v.retencao.resp)}${v.retencao.ps ? ' · prev. ' + esc(v.retencao.ps) : ''}</span>`;
+  else if (v.status === 'INOPERANTE' && v.manual) info = `<b>${esc(v.manual.motivo)}</b><br><span class="sub">por ${esc(v.manual.operador)} · ${esc(v.manual.quando)}</span>`;
+  else if (v.proxima) info = `Próx.: <b>${v.proxima.h}</b> ${esc(v.proxima.op)}<br><span class="sub">${esc(v.proxima.mot)} · em ${tempo(v.proxima.emMin)}</span>`;
+  else if (v.ultimaSaida) info = `<span class="sub">Última saída ${v.ultimaSaida.h} · ${esc(v.ultimaSaida.op)}</span>`;
+  else info = '<span class="sub">Sem escala hoje</span>';
+
+  const tags = [];
+  if (!v.gps) tags.push('<span class="tag">sem rastreador</span>');
+  else if (!v.gps.ok) tags.push(`<span class="tag alerta">GPS ${esc(v.gps.quando)}</span>`);
+  else tags.push(`<span class="tag">${v.naGaragem === true ? 'na garagem' : v.naGaragem === false ? 'fora · ' + dist(v.distGaragem) : 'GPS ok'} · há ${tempo(v.gps.idadeMin)}</span>`);
+  if (v.escalas && v.escalas.some(e => e.substituido)) tags.push('<span class="tag alerta">substituto</span>');
+  if (v.foraCadastro) tags.push('<span class="tag">não cadastrado na frota</span>');
+
+  return `<div class="card" style="--c:${s.c}" data-v="${esc(v.num)}">
+    <div class="topo"><span class="num">${esc(v.num)}</span><span class="placa">${esc(v.placa)}</span><span class="esp"></span><span class="badge">${s.txt}</span></div>
+    <div class="linha" title="${esc(v.linha)}">${esc(v.servico)}${v.linha ? ' · ' + esc(v.linha) : ''}</div>
+    <div class="info">${info}</div>
+    <div>${tags.join('')}</div>
+    ${barraComb(v.combustivel)}
+  </div>`;
+}
+
+function barraComb(c){
+  if (!c) return '';
+  if (c.semConsumo) return '<div class="comb">Combustível: sem faixa de consumo</div>';
+  if (c.semRegistro) return '<div class="comb">Combustível: aguardando 1º abastecimento</div>';
+  if (c.semHodometro) return '<div class="comb">Combustível: sem hodômetro</div>';
+  return `<div class="comb ${c.precisa?'baixo':''}" title="${c.kmDesde} km desde ${esc(c.ultimo)} · média ${String(c.media).replace('.',',')} km/l (${c.origemMedia === 'real' ? 'real do veículo' : 'da faixa'})">⛽ <div class="trilho"><div class="nivel" style="width:${c.pct}%"></div></div>${c.pct}% · ~${c.kmRestante} km</div>`;
+}
+
+function tempo(min){
+  if (min == null) return '?';
+  if (min < 60) return min + ' min';
+  const h = Math.floor(min/60), m = min%60;
+  return h + 'h' + (m ? String(m).padStart(2,'0') : '');
+}
+
+function renderSaidas(){
+  const s = dados.saidas || [];
+  $('nSaidas').textContent = s.length;
+  $('saidas').innerHTML = s.length ? s.map(x => {
+    const [txt,c] = SIT[x.situacao] || [x.situacao,'var(--cinza)'];
+    const extra = x.situacao === 'FORA' ? ' · ' + dist(x.dist) : '';
+    return `<div class="saida ${x.falta<0?'passada':''}" data-v="${esc(x.veic)}">
+      <div class="h">${x.h}<small>${x.falta<0?'há '+tempo(-x.falta):'em '+tempo(x.falta)}</small></div>
+      <div style="min-width:0"><div class="op" title="${esc(x.op)}">${esc(x.op)}</div>
+        <div class="vm"><b style="color:var(--texto)">${esc(x.veic)}</b>${x.substituido?' <s>'+esc(x.original)+'</s>':''} · ${esc(x.mot)}${x.local?' · '+esc(x.local):''}</div></div>
+      <div style="text-align:right"><span class="badge" style="--c:${c}">${txt}${extra}</span>${x.abastecer?'<br><span class="badge" style="--c:#fb7185;margin-top:3px">⛽ abastecer</span>':''}</div>
+    </div>`;
+  }).join('') : '<div class="vazio">Nenhuma saída nas próximas horas.</div>';
+}
+
+function renderAlertas(){
+  const a = dados.alertas || [];
+  $('nAlertas').textContent = a.length;
+  $('listaAlertas').innerHTML = a.length ? a.map(x =>
+    `<div class="item"><b>${esc(x.h)} · ${esc(x.veic)}</b> — ${esc(TIPO_ALERTA[x.tipo]||x.tipo)}<br><span class="sub">${esc(x.op)}</span></div>`).join('')
+    : '<div class="vazio">Nenhum alerta em aberto.</div>';
+  // fila do alarme: tudo que está aberto no servidor
+  const ids = new Set(a.map(x => x.id));
+  fila = a.slice();
+  if (alertaAtual && !ids.has(alertaAtual.id)) fecharAlarme();      // baixado por outro operador
+  if (!alertaAtual && fila.length) abrirAlarme(fila[0]);
+  else if (alertaAtual) $('alFila').textContent = filaTxt();
+}
+
+/* ---------- alarme ---------- */
+function filaTxt(){ const i = fila.findIndex(x => alertaAtual && x.id === alertaAtual.id); return fila.length > 1 ? `Alerta ${i+1} de ${fila.length}` : ''; }
+
+function abrirAlarme(a){
+  alertaAtual = a;
+  $('alTipo').textContent = TIPO_ALERTA[a.tipo] || a.tipo;
+  $('alFila').textContent = filaTxt();
+  $('alTitulo').textContent = `Veículo ${a.veic} · ${a.h}`;
+  $('alDet').innerHTML = `${esc(a.op)}<br>${esc(a.motivo)}${a.local ? '<br>Local: ' + esc(a.local) : ''}`;
+  document.querySelectorAll('input[name=resp]').forEach(r => r.checked = false);
+  $('alVeic').value = ''; $('alObs').value = ''; $('alErro').textContent = '';
+  $('alAlterar').style.display = 'none'; $('alObsLbl').textContent = 'Observação (opcional)';
+  $('ovAlarme').classList.add('aberto'); $('flash').classList.add('on');
+  iniciarSirene();
+}
+
+function fecharAlarme(){
+  alertaAtual = null;
+  $('ovAlarme').classList.remove('aberto'); $('flash').classList.remove('on');
+  pararSirene();
+  const prox = fila.find(x => true);
+  if (prox) abrirAlarme(prox);
+}
+
+document.addEventListener('change', e => {
+  if (e.target.name === 'resp') {
+    const alt = e.target.value === 'ALTERADO';
+    $('alAlterar').style.display = alt ? '' : 'none';
+    $('alObsLbl').textContent = alt ? 'Motivo da alteração (obrigatório)' : 'Observação (opcional)';
+    if (alt) $('alVeic').focus();
+  }
+});
+
+$('alBaixar').onclick = async () => {
+  const r = document.querySelector('input[name=resp]:checked');
+  const op = $('operador').value.trim();
+  const veic = $('alVeic').value.trim(), obs = $('alObs').value.trim();
+  if (!op) return erroAl('Preencha o seu nome no campo "Operador" no topo da tela.');
+  if (!r) return erroAl('Escolha: confirmar o mesmo veículo ou sugerir alteração.');
+  if (r.value === 'ALTERADO' && !veic) return erroAl('Informe o veículo sugerido.');
+  if (r.value === 'ALTERADO' && !obs) return erroAl('Informe o motivo da alteração.');
+  $('alBaixar').disabled = true;
+  try {
+    await chamar('baixarAlerta', alertaAtual.id, r.value, veic, obs, op);
+    const id = alertaAtual.id;
+    fila = fila.filter(x => x.id !== id);
+    if (dados) dados.alertas = dados.alertas.filter(x => x.id !== id);
+    toast('Alerta baixado.');
+    fecharAlarme(); carregar();
+  } catch (e) { erroAl(e.message); }
+  finally { $('alBaixar').disabled = false; }
+};
+function erroAl(m){ $('alErro').textContent = m; }
+
+/* ---------- som ---------- */
+let audio = null, sirene = null;
+function ativarSom(){
+  try {
+    audio = audio || new (window.AudioContext || window.webkitAudioContext)();
+    if (audio.state === 'suspended') audio.resume();
+    $('btnSom').textContent = '🔊 Som ativo'; $('btnSom').classList.remove('som-off');
+    $('alSomAviso').textContent = '';
+  } catch (e) {}
+}
+function bip(freq, ini, dur){
+  const o = audio.createOscillator(), g = audio.createGain();
+  o.type = 'square'; o.frequency.value = freq;
+  g.gain.setValueAtTime(0.0001, audio.currentTime + ini);
+  g.gain.exponentialRampToValueAtTime(0.25, audio.currentTime + ini + 0.02);
+  g.gain.exponentialRampToValueAtTime(0.0001, audio.currentTime + ini + dur);
+  o.connect(g).connect(audio.destination); o.start(audio.currentTime + ini); o.stop(audio.currentTime + ini + dur + 0.05);
+}
+function tocar(){ if (audio && audio.state === 'running') { bip(880,0,.22); bip(660,.25,.22); bip(880,.5,.22); bip(660,.75,.22); } }
+function iniciarSirene(){
+  pararSirene();
+  if (!audio || audio.state !== 'running') $('alSomAviso').textContent = 'Som desativado: clique em qualquer lugar para ativar.';
+  tocar(); sirene = setInterval(tocar, 1500);
+  piscarTitulo(true);
+}
+function pararSirene(){ clearInterval(sirene); sirene = null; piscarTitulo(false); }
+let tituloTimer = null; const tituloOrig = document.title;
+function piscarTitulo(on){
+  clearInterval(tituloTimer); document.title = tituloOrig;
+  if (on) tituloTimer = setInterval(() => { document.title = document.title === tituloOrig ? '⚠ ALERTA DE FROTA' : tituloOrig; }, 800);
+}
+document.addEventListener('pointerdown', ativarSom, {capture:true});
+$('btnSom').onclick = ativarSom;
+
+/* ---------- detalhes do veículo ---------- */
+document.addEventListener('click', e => {
+  const k = e.target.closest('.kpi');
+  if (k) { filtro = filtro === k.dataset.k ? 'TOTAL' : k.dataset.k; render(); return; }
+  const c = e.target.closest('[data-v]');
+  if (c && !e.target.closest('.overlay')) abrirVeiculo(c.dataset.v);
+  if (e.target.id === 'ovVeic') $('ovVeic').classList.remove('aberto');
+});
+
+function abrirVeiculo(num){
+  const v = dados.veiculos.find(x => x.num === String(num));
+  if (!v) return;
+  const s = STATUS[v.status] || {txt:v.status,c:'var(--cinza)'};
+  const linha = (l, x) => x ? `<tr><td>${l}</td><td>${x}</td></tr>` : '';
+  const c = v.combustivel || {};
+  $('gaveta').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px"><h3>${esc(v.num)}</h3><span class="badge" style="--c:${s.c}">${s.txt}</span><span class="esp" style="flex:1"></span><button class="btn" id="gvFechar">Fechar</button></div>
+    <table class="tab">
+      ${linha('Placa', esc(v.placa))}${linha('Tipo / carroceria', esc(v.servico))}${linha('Alocação', esc(v.linha))}${linha('Setor', esc(v.setor))}
+      ${linha('Ano · poltronas', [v.ano, v.poltronas && v.poltronas + ' lugares'].filter(Boolean).join(' · '))}${linha('Ar · sanitário', [v.ar && 'Ar: ' + esc(v.ar), v.sanitario && 'WC: ' + esc(v.sanitario)].filter(Boolean).join(' · '))}
+      ${linha('Posição', v.gps ? (v.gps.ok ? (v.naGaragem === true ? 'Na garagem' : v.naGaragem === false ? 'Fora da garagem (' + dist(v.distGaragem) + ')' : 'GPS ok') : 'GPS antigo') + ' · ' + esc(v.gps.quando) + (v.gps.lat != null ? ` · <a style="color:var(--ciano)" target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">ver no mapa</a>` : '') : 'Sem rastreador')}
+      ${linha('Hodômetro', v.gps && v.gps.km != null ? Math.round(v.gps.km).toLocaleString('pt-BR') + ' km' : '')}
+      ${linha('Combustível', c.pct != null ? `${c.pct}% · ~${c.kmRestante} km restantes<br><span class="sub">${c.kmDesde} km desde o abastecimento de ${esc(c.ultimo)} (${c.ultimoLitros} L) · média ${String(c.media).replace('.',',')} km/l ${c.origemMedia === 'real' ? 'real do veículo' : 'da faixa ' + esc(c.faixa)} · tanque ${c.tanque} L</span>` : c.semConsumo ? 'Sem faixa de consumo (confira os lugares)' : c.semRegistro ? 'Aguardando 1º abastecimento na planilha' : c.semHodometro ? 'Sem hodômetro do GPS' : '')}
+    </table>
+    ${v.retencao ? `<div class="secao">Retenção</div><table class="tab">${linha('Defeito', esc(v.retencao.defeito))}${linha('Status', esc(v.retencao.status))}${linha('Responsável', esc(v.retencao.resp))}${linha('Entrada · previsão', esc(v.retencao.entrada) + (v.retencao.ps ? ' · ' + esc(v.retencao.ps) : ''))}${linha('Dias retido', esc(v.retencao.dr))}${linha('Almoxarifado', esc(v.retencao.almox))}</table>` : ''}
+    ${v.manual ? `<div class="secao">Inoperante (manual)</div><table class="tab">${linha('Motivo', esc(v.manual.motivo))}${linha('Por', esc(v.manual.operador) + ' · ' + esc(v.manual.quando))}</table>` : ''}
+    <div class="secao">Escalas de hoje</div>
+    <table class="tab">${(v.escalas||[]).length ? v.escalas.map(e => `<tr><td>${e.h}</td><td>${esc(e.op)}<br><span class="sub">${esc(e.mot)}${e.substituido ? ' · substituiu o ' + esc(e.original) : ''}</span></td></tr>`).join('') : '<tr><td colspan="2" class="sub">Sem escala hoje</td></tr>'}</table>
+
+    <div class="secao">Ações</div>
+    ${v.status === 'INOPERANTE'
+      ? `<div class="acoes"><button class="btn ok" id="gvLiberar">Liberar veículo</button></div>`
+      : v.status === 'RETIDO' ? '<div class="sub" style="margin-top:6px">Retido pela manutenção: a liberação acontece na planilha de retenção.</div>'
+      : `<div class="campo"><span>Motivo para marcar como inoperante</span><input id="gvMotivo" placeholder="Ex.: pneu, sem motorista, avaria…"></div>
+         <div class="acoes"><button class="btn perigo" id="gvInop">Marcar inoperante</button></div>`}
+    <div class="erro-msg" id="gvErro"></div>`;
+  $('ovVeic').classList.add('aberto');
+  $('gvFechar').onclick = () => $('ovVeic').classList.remove('aberto');
+  const acao = async (fn, args, msg) => {
+    const op = $('operador').value.trim();
+    if (!op) return $('gvErro').textContent = 'Preencha o seu nome no campo "Operador" no topo da tela.';
+    try { await chamar(fn, ...args, op); toast(msg); $('ovVeic').classList.remove('aberto'); carregar(); }
+    catch (e) { $('gvErro').textContent = e.message; }
+  };
+  if ($('gvLiberar')) $('gvLiberar').onclick = () => acao('liberarVeiculo', [v.num], 'Veículo ' + v.num + ' liberado.');
+  if ($('gvInop')) $('gvInop').onclick = () => {
+    const m = $('gvMotivo').value.trim();
+    if (!m) return $('gvErro').textContent = 'Informe o motivo.';
+    acao('definirInoperante', [v.num, m], 'Veículo ' + v.num + ' marcado como inoperante.');
+  };
+}
+
+function toast(m){ const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._t); t._t = setTimeout(() => t.style.display = 'none', 2500); }
+
+/* ---------- início ---------- */
+try { $('operador').value = localStorage.getItem('operadorFrota') || ''; } catch (e) {}
+$('operador').addEventListener('change', () => { try { localStorage.setItem('operadorFrota', $('operador').value.trim()); } catch (e) {} });
+$('busca').addEventListener('input', () => dados && renderGrade());
+$('btnAtualizar').onclick = carregar;
+setInterval(() => {
+  const d = new Date(Date.now() + offsetRelogio*1000);
+  $('relogio').textContent = d.toTimeString().slice(0,8);
+}, 1000);
+carregar();
+setInterval(carregar, INTERVALO * 1000);
+</script>
+</body>
+</html>
