@@ -253,6 +253,7 @@ const TIPO_ALERTA = {
 let dados = null, filtro = 'TOTAL', fila = [], alertaAtual = null, ocupado = false, offsetRelogio = 0;
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const hd = (dia, h) => (dia ? dia + ' ' : '') + h;   // "amanhã 04:20"
 let ANT = {};   // número principal -> número antigo
 const vtxt = n => esc(n) + (ANT[n] ? ' (' + esc(ANT[n]) + ')' : '');
 const dist = m => m == null ? '' : (m >= 1000 ? (m/1000).toFixed(1).replace('.',',') + ' km' : m + ' m');
@@ -323,9 +324,9 @@ function card(v){
   let info = '';
   if (v.status === 'RETIDO' && v.retencao) info = `<b>${esc(v.retencao.defeito)}</b><br><span class="sub">${esc(v.retencao.status)} · ${esc(v.retencao.resp)}${v.retencao.ps ? ' · prev. ' + esc(v.retencao.ps) : ''}</span>`;
   else if (v.status === 'INOPERANTE' && v.manual) info = `<b>${esc(v.manual.motivo)}</b><br><span class="sub">por ${esc(v.manual.operador)} · ${esc(v.manual.quando)}</span>`;
-  else if (v.proxima) info = `Próx.: <b>${v.proxima.h}</b> ${esc(v.proxima.op)}<br><span class="sub">${esc(v.proxima.mot)} · em ${tempo(v.proxima.emMin)}</span>`;
-  else if (v.ultimaSaida) info = `<span class="sub">Última saída ${v.ultimaSaida.h} · ${esc(v.ultimaSaida.op)}</span>`;
-  else info = '<span class="sub">Sem escala hoje</span>';
+  else if (v.proxima) info = `Próx.: <b>${hd(v.proxima.dia, v.proxima.h)}</b> ${esc(v.proxima.op)}<br><span class="sub">${esc(v.proxima.mot)} · em ${tempo(v.proxima.emMin)}</span>`;
+  else if (v.ultimaSaida) info = `<span class="sub">Última saída ${hd(v.ultimaSaida.dia, v.ultimaSaida.h)} · ${esc(v.ultimaSaida.op)}</span>`;
+  else info = '<span class="sub">Sem escala</span>';
 
   const tags = [];
   if (!v.gps) tags.push('<span class="tag">não está na VF_frota</span>');
@@ -372,7 +373,7 @@ function renderSaidas(){
     const [txt,c] = SIT[x.situacao] || [x.situacao,'var(--cinza)'];
     const extra = x.situacao === 'FORA' ? ' · ' + dist(x.dist) : '';
     return `<div class="saida ${x.falta<0?'passada':''}" data-v="${esc(x.veic)}">
-      <div class="h">${x.h}<small>${x.falta<0?'há '+tempo(-x.falta):'em '+tempo(x.falta)}</small></div>
+      <div class="h">${x.h}<small>${x.dia ? x.dia + ' · ' : ''}${x.falta<0?'há '+tempo(-x.falta):'em '+tempo(x.falta)}</small></div>
       <div style="min-width:0"><div class="op" title="${esc(x.op)}">${esc(x.op)}</div>
         <div class="vm"><b style="color:var(--texto)">${vtxt(x.veic)}</b>${x.substituido?' <s>'+vtxt(x.original)+'</s>':''} · ${esc(x.mot)}${x.local?' · '+esc(x.local):''}</div></div>
       <div style="text-align:right"><span class="badge" style="--c:${c}">${txt}${extra}</span>${x.abastecer?'<br><span class="badge" style="--c:var(--laranja);margin-top:3px">⛽ abastecer</span>':''}</div>
@@ -384,7 +385,7 @@ function renderAlertas(){
   const a = dados.alertas || [];
   $('nAlertas').textContent = a.length;
   $('listaAlertas').innerHTML = a.length ? a.map(x =>
-    `<div class="item"><b>${esc(x.h)} · ${vtxt(x.veic)}</b> — ${esc(TIPO_ALERTA[x.tipo]||x.tipo)}<br><span class="sub">${esc(x.op)}</span></div>`).join('')
+    `<div class="item"><b>${esc(hd(x.dia, x.h))} · ${vtxt(x.veic)}</b> — ${esc(TIPO_ALERTA[x.tipo]||x.tipo)}<br><span class="sub">${esc(x.op)}</span></div>`).join('')
     : '<div class="vazio">Nenhum alerta em aberto.</div>';
   // fila do alarme: tudo que está aberto no servidor
   const ids = new Set(a.map(x => x.id));
@@ -401,7 +402,7 @@ function abrirAlarme(a){
   alertaAtual = a;
   $('alTipo').textContent = TIPO_ALERTA[a.tipo] || a.tipo;
   $('alFila').textContent = filaTxt();
-  $('alTitulo').innerHTML = `Veículo ${vtxt(a.veic)} · ${esc(a.h)}`;
+  $('alTitulo').innerHTML = `Veículo ${vtxt(a.veic)} · ${esc(hd(a.dia, a.h))}`;
   $('alDet').innerHTML = `${esc(a.op)}<br>${esc(a.motivo)}${a.local ? '<br>Local: ' + esc(a.local) : ''}`;
   document.querySelectorAll('input[name=resp]').forEach(r => r.checked = false);
   $('alVeic').value = ''; $('alObs').value = ''; $('alNome').value = ''; $('alErro').textContent = '';
@@ -511,8 +512,8 @@ function abrirVeiculo(num){
     </table>
     ${v.retencao ? `<div class="secao">Retenção</div><table class="tab">${linha('Defeito', esc(v.retencao.defeito))}${linha('Status', esc(v.retencao.status))}${linha('Responsável', esc(v.retencao.resp))}${linha('Entrada · previsão', esc(v.retencao.entrada) + (v.retencao.ps ? ' · ' + esc(v.retencao.ps) : ''))}${linha('Dias retido', esc(v.retencao.dr))}${linha('Almoxarifado', esc(v.retencao.almox))}</table>` : ''}
     ${v.manual ? `<div class="secao">Inoperante (manual)</div><table class="tab">${linha('Motivo', esc(v.manual.motivo))}${linha('Por', esc(v.manual.operador) + ' · ' + esc(v.manual.quando))}</table>` : ''}
-    <div class="secao">Escalas de hoje</div>
-    <table class="tab">${(v.escalas||[]).length ? v.escalas.map(e => `<tr><td>${e.h}</td><td>${esc(e.op)}<br><span class="sub">${esc(e.mot)}${e.substituido ? ' · substituiu o ' + vtxt(e.original) : ''}</span></td></tr>`).join('') : '<tr><td colspan="2" class="sub">Sem escala hoje</td></tr>'}</table>
+    <div class="secao">Escalas (ontem, hoje e amanhã)</div>
+    <table class="tab">${(v.escalas||[]).length ? v.escalas.map(e => `<tr><td>${hd(e.dia, e.h)}</td><td>${esc(e.op)}<br><span class="sub">${esc(e.mot)}${e.substituido ? ' · substituiu o ' + vtxt(e.original) : ''}</span></td></tr>`).join('') : '<tr><td colspan="2" class="sub">Sem escala de ontem a amanhã</td></tr>'}</table>
 
     <div class="secao">Ações</div>
     ${v.status === 'INOPERANTE'
