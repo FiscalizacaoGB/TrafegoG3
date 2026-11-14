@@ -64,6 +64,18 @@
   .barra input{flex:0 0 340px;background:var(--campo);border:1px solid var(--borda-forte);color:var(--texto);border-radius:6px;padding:8px 10px}
   .barra input:focus,.campo input:focus,.campo textarea:focus{outline:2px solid var(--marca-verde);outline-offset:0;border-color:transparent}
   .avisos{display:flex;flex-direction:column;gap:4px;padding:0 20px 6px}
+  .infos{display:flex;flex-wrap:wrap;gap:8px;padding:0 20px 8px;align-items:center}
+  .infos .rot{font:700 11.5px Montserrat,Arial,sans-serif;text-transform:uppercase;letter-spacing:.6px;color:var(--fraco);margin-right:2px}
+  .chip-info{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--borda);border-radius:999px;padding:5px 6px 5px 12px;cursor:pointer;box-shadow:var(--sombra);font-size:12.5px;font-weight:600;color:var(--texto)}
+  .chip-info:hover{border-color:var(--marca-verde)}
+  .chip-info .qtd{background:var(--marca-escuro);color:#fff;border-radius:999px;padding:1px 9px;font:700 12px Montserrat,Arial,sans-serif;min-width:26px;text-align:center}
+  [data-tema=escuro] .chip-info .qtd{background:var(--marca-verde)}
+  .lista-info{max-height:60vh;overflow:auto;margin-top:8px;border:1px solid var(--linha);border-radius:8px}
+  .lista-info .li{display:flex;gap:10px;padding:7px 10px;border-bottom:1px solid var(--linha);font-size:13px;align-items:baseline}
+  .lista-info .li:last-child{border-bottom:0}
+  .lista-info .li[data-v]{cursor:pointer}
+  .lista-info .li[data-v]:hover{background:var(--linha)}
+  .lista-info .li b{min-width:92px;font-family:Montserrat,Arial,sans-serif}
   .aviso{color:var(--aviso-txt);background:var(--aviso-bg);border:1px solid var(--aviso-borda);border-radius:6px;padding:5px 10px;font-size:12px}
 
   main{display:grid;grid-template-columns:1fr 430px;gap:14px;padding:6px 20px 20px;align-items:start}
@@ -166,6 +178,7 @@
   <span class="sub" id="contagem"></span>
 </div>
 <div class="avisos" id="avisos"></div>
+<section class="infos" id="infos"></section>
 
 <main>
   <section class="grade" id="grade"></section>
@@ -284,6 +297,9 @@ function render(){
   $('kpis').innerHTML = KPIS.map(([id,l,c]) =>
     `<div class="kpi ${filtro===id?'ativo':''}" style="--c:${c}" data-k="${id}"><div class="n">${k[id]||0}</div><div class="l">${l}</div></div>`).join('');
   $('avisos').innerHTML = (dados.avisos||[]).map(a => `<div class="aviso">⚠ ${esc(a)}</div>`).join('');
+  const inf = dados.info || [];
+  $('infos').innerHTML = inf.length ? '<span class="rot">ℹ Informações</span>' + inf.map(i =>
+    `<button class="chip-info" data-info="${esc(i.id)}" title="Clique para ver a lista">${esc(i.titulo)}<span class="qtd">${i.tipo === 'texto' ? '!' : i.itens.length}</span></button>`).join('') : '';
   renderGrade(); renderSaidas(); renderAlertas();
 }
 
@@ -295,7 +311,7 @@ function passaFiltro(v){
 
 function renderGrade(){
   const q = $('busca').value.trim().toUpperCase();
-  const lista = dados.veiculos.filter(passaFiltro).filter(v => !q || [v.num,ANT[v.num]||'',v.placa,v.linha,v.servico,
+  const lista = dados.veiculos.filter(passaFiltro).filter(v => !q || [v.num,ANT[v.num]||'',v.placa,v.cidade||'',v.linha,v.servico,
     ...(v.escalas||[]).map(e => e.op + ' ' + e.mot)].join(' ').toUpperCase().includes(q))
     .sort((a,b) => ORDEM.indexOf(a.status)-ORDEM.indexOf(b.status) || Number(a.num)-Number(b.num));
   $('contagem').textContent = lista.length + ' veículo(s)';
@@ -313,11 +329,12 @@ function card(v){
 
   const tags = [];
   if (!v.gps) tags.push('<span class="tag">não está na VF_frota</span>');
-  else if (!v.gps.ok) tags.push(`<span class="tag alerta">${v.gps.lat == null ? 'posição inválida' : 'GPS ' + esc(v.gps.quando)}</span>`);
+  else if (!v.gps.ok) tags.push(`<span class="tag alerta">${v.gps.lat == null ? 'posição inválida' : 'GPS antigo' + (v.cidade ? ' · ' + esc(v.cidade) : '') + ' · ' + esc(v.gps.quando)}</span>`);
   else {
     const onde = v.naGaragem === true ? 'na garagem'
       : v.localAtual ? '📍 ' + esc(v.localAtual)
       : v.gps.ref ? '📍 ' + esc(v.gps.ref)
+      : v.cidade ? '📍 ' + esc(v.cidade)
       : v.naGaragem === false ? 'a ' + dist(v.distGaragem) + ' da garagem' : 'GPS ok';
     tags.push(`<a class="tag mapa" target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}" title="Abrir no mapa">${onde} · há ${tempo(v.gps.idadeMin)}</a>`);
   }
@@ -467,11 +484,13 @@ $('btnSom').onclick = ativarSom;
 
 /* ---------- detalhes do veículo ---------- */
 document.addEventListener('click', e => {
+  const bi = e.target.closest('[data-info]');
+  if (bi) { abrirInfo(bi.dataset.info); return; }
   const k = e.target.closest('.kpi');
   if (k) { filtro = filtro === k.dataset.k ? 'TOTAL' : k.dataset.k; render(); return; }
   if (e.target.closest('a')) return;
   const c = e.target.closest('[data-v]');
-  if (c && !e.target.closest('.overlay')) abrirVeiculo(c.dataset.v);
+  if (c && (!e.target.closest('.overlay') || e.target.closest('.lista-info'))) abrirVeiculo(c.dataset.v);
   if (e.target.id === 'ovVeic') $('ovVeic').classList.remove('aberto');
 });
 
@@ -486,7 +505,7 @@ function abrirVeiculo(num){
     <table class="tab">
       ${linha('Placa', esc(v.placa))}${linha('Tipo / carroceria', esc(v.servico))}${linha('Alocação', esc(v.linha))}${linha('Setor', esc(v.setor))}
       ${linha('Ano · poltronas', [v.ano, v.poltronas && v.poltronas + ' lugares'].filter(Boolean).join(' · '))}${linha('Ar · sanitário', [v.ar && 'Ar: ' + esc(v.ar), v.sanitario && 'WC: ' + esc(v.sanitario)].filter(Boolean).join(' · '))}
-      ${linha('Posição', v.gps ? (v.gps.ok ? (v.naGaragem === true ? 'Na garagem' : v.localAtual ? esc(v.localAtual) : v.gps.ref ? esc(v.gps.ref) : v.naGaragem === false ? 'A ' + dist(v.distGaragem) + ' da garagem' : 'GPS ok') : v.gps.lat == null ? 'Posição inválida' : 'GPS antigo') + ' · ' + esc(v.gps.quando) + (v.gps.lat != null ? ` · <a target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">ver no mapa</a>` : '') : 'Não está na aba VF_frota')}
+      ${linha('Posição', v.gps ? (v.gps.ok ? (v.naGaragem === true ? 'Na garagem' : v.localAtual ? esc(v.localAtual) : v.gps.ref ? esc(v.gps.ref) : v.cidade ? esc(v.cidade) + (v.distGaragem != null ? ' (a ' + dist(v.distGaragem) + ' da garagem)' : '') : v.naGaragem === false ? 'A ' + dist(v.distGaragem) + ' da garagem' : 'GPS ok') : v.gps.lat == null ? 'Posição inválida' : 'GPS antigo') + ' · ' + esc(v.gps.quando) + (v.gps.lat != null ? ` · <a target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">ver no mapa</a>` : '') : 'Não está na aba VF_frota')}
       ${linha('Hodômetro', v.gps && v.gps.km != null ? Math.round(v.gps.km).toLocaleString('pt-BR') + ' km' : '')}
       ${linha('Combustível', c.pct != null ? `${c.pct}% · ~${c.kmRestante} km restantes<br><span class="sub">${c.kmDesde} km desde o abastecimento de ${esc(c.ultimo)} (${c.ultimoLitros} L) · média ${String(c.media).replace('.',',')} km/l ${c.origemMedia === 'real' ? 'real do veículo' : 'da faixa ' + esc(c.faixa)} · tanque ${c.tanque} L</span>` : c.semConsumo ? 'Sem faixa de consumo (confira os lugares)' : c.semRegistro ? 'Aguardando 1º abastecimento na planilha' : c.semHodometro ? 'Sem hodômetro do GPS' : '')}
     </table>
@@ -518,6 +537,21 @@ function abrirVeiculo(num){
     if (!m) return $('gvErro').textContent = 'Informe o motivo.';
     acao('definirInoperante', [v.num, m], 'Veículo ' + v.num + ' marcado como inoperante.');
   };
+}
+
+function abrirInfo(id){
+  const i = (dados.info || []).find(x => x.id === id);
+  if (!i) return;
+  const itens = i.itens.map(x => i.tipo === 'veiculo'
+    ? `<div class="li" data-v="${esc(x.num)}" title="Abrir veículo"><b>${vtxt(x.num)}</b><span class="sub">${esc(x.txt)}</span></div>`
+    : `<div class="li"><b>${esc(x.h || '')}</b><span>${esc(x.txt)}</span></div>`).join('');
+  $('gaveta').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px"><h3 style="font-size:19px">${esc(i.titulo)}</h3>${i.tipo !== 'texto' ? `<span class="badge" style="--c:var(--marca-escuro)">${i.itens.length}</span>` : ''}<span style="flex:1"></span><button class="btn" id="gvFechar">Fechar</button></div>
+    <div class="sub" style="margin-top:6px;font-size:13px">${esc(i.desc)}</div>
+    ${itens ? `<div class="lista-info">${itens}</div>` : ''}
+    ${i.tipo === 'veiculo' ? '<div class="sub" style="margin-top:8px">Clique em um veículo para ver os detalhes.</div>' : ''}`;
+  $('ovVeic').classList.add('aberto');
+  $('gvFechar').onclick = () => $('ovVeic').classList.remove('aberto');
 }
 
 function toast(m){ const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._t); t._t = setTimeout(() => t.style.display = 'none', 2500); }
