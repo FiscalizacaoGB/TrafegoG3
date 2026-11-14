@@ -73,10 +73,14 @@
   .card .topo{display:flex;align-items:baseline;gap:8px}
   .card .num{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
   .card .placa{color:var(--fraco);font-size:12px}
+  .card .antigo{font:700 13px Montserrat,Arial,sans-serif;color:var(--marca-escuro);background:var(--linha);border-radius:4px;padding:0 5px}
+  [data-tema=escuro] .card .antigo{color:var(--texto)}
   .badge{display:inline-block;font-size:11px;font-weight:700;padding:2px 8px;border-radius:999px;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c);border:1px solid color-mix(in srgb,var(--c) 40%,transparent);white-space:nowrap}
   .card .linha{font-size:12px;color:var(--fraco);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .card .info{font-size:12.5px}
   .tag{font-size:11px;padding:1px 6px;border-radius:4px;background:var(--linha);color:var(--fraco);margin-right:4px;display:inline-block;margin-top:2px}
+  a.tag.mapa{text-decoration:none;color:var(--marca-verde);font-weight:600}
+  a.tag.mapa:hover{text-decoration:underline}
   .tag.alerta{background:color-mix(in srgb,var(--vermelho) 12%,transparent);color:var(--vermelho)}
   .comb{display:flex;align-items:center;gap:6px;font-size:11.5px;color:var(--fraco)}
   .comb .trilho{flex:1;height:6px;border-radius:3px;background:var(--linha);overflow:hidden}
@@ -151,7 +155,6 @@
   </div>
   <div class="relogio" id="relogio">--:--:--</div>
   <div class="esp"></div>
-  <div class="hd-campo"><span class="sub">Operador</span><input id="operador" placeholder="Seu nome" autocomplete="name"></div>
   <button class="btn som-off" id="btnSom" title="O navegador só toca som depois de um clique na página">🔇 Ativar som</button>
   <button class="btn" id="btnTema" title="Alternar modo claro/escuro">🌙 Modo noite</button>
   <button class="btn" id="btnAtualizar">Atualizar</button>
@@ -192,6 +195,7 @@
         <div class="campo"><span>Veículo sugerido</span><input id="alVeic" inputmode="numeric" placeholder="Ex.: 9560"></div>
       </div>
       <div class="campo"><span id="alObsLbl">Observação (opcional)</span><textarea id="alObs" rows="2"></textarea></div>
+      <div class="campo"><span>Seu nome (obrigatório)</span><input id="alNome" placeholder="Nome de quem está dando a baixa" autocomplete="off"></div>
     </fieldset>
     <div class="erro-msg" id="alErro"></div>
     <div class="acoes"><button class="btn ok" id="alBaixar">Dar baixa no alerta</button><span class="sub" id="alSomAviso"></span></div>
@@ -224,7 +228,7 @@ const KPIS = [
 ];
 const SIT = {
   NO_LOCAL:['No local','var(--verde)'], FORA:['Fora do local','var(--vermelho)'], SEM_GPS:['GPS antigo','var(--ambar)'],
-  SEM_RASTREADOR:['Sem rastreador','var(--cinza)'], SEM_LOCAL:['Local não cadastrado','var(--cinza)'],
+  SEM_RASTREADOR:['Fora da VF_frota','var(--cinza)'], SEM_LOCAL:['Local não cadastrado','var(--cinza)'],
   RETIDO:['Retido','var(--vermelho)'], INOPERANTE:['Inoperante','var(--roxo)'], SAIU:['Horário passou','var(--cinza)']
 };
 const TIPO_ALERTA = {
@@ -236,6 +240,8 @@ const TIPO_ALERTA = {
 let dados = null, filtro = 'TOTAL', fila = [], alertaAtual = null, ocupado = false, offsetRelogio = 0;
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let ANT = {};   // número principal -> número antigo
+const vtxt = n => esc(n) + (ANT[n] ? ' (' + esc(ANT[n]) + ')' : '');
 const dist = m => m == null ? '' : (m >= 1000 ? (m/1000).toFixed(1).replace('.',',') + ' km' : m + ' m');
 
 /* ---------- servidor (google.script.run ou simulação local) ---------- */
@@ -259,6 +265,7 @@ async function carregar(){
   ocupado = true; $('ponto').className = 'ponto carregando';
   try {
     dados = await chamar('getPainel');
+    ANT = dados.antigos || {};
     const [h,m,s] = dados.agora.split(':').map(Number);
     const agoraLocal = new Date(); offsetRelogio = (h*3600+m*60+s) - (agoraLocal.getHours()*3600+agoraLocal.getMinutes()*60+agoraLocal.getSeconds());
     $('data').textContent = dados.data;
@@ -288,7 +295,7 @@ function passaFiltro(v){
 
 function renderGrade(){
   const q = $('busca').value.trim().toUpperCase();
-  const lista = dados.veiculos.filter(passaFiltro).filter(v => !q || [v.num,v.placa,v.linha,v.servico,
+  const lista = dados.veiculos.filter(passaFiltro).filter(v => !q || [v.num,ANT[v.num]||'',v.placa,v.linha,v.servico,
     ...(v.escalas||[]).map(e => e.op + ' ' + e.mot)].join(' ').toUpperCase().includes(q))
     .sort((a,b) => ORDEM.indexOf(a.status)-ORDEM.indexOf(b.status) || Number(a.num)-Number(b.num));
   $('contagem').textContent = lista.length + ' veículo(s)';
@@ -305,14 +312,20 @@ function card(v){
   else info = '<span class="sub">Sem escala hoje</span>';
 
   const tags = [];
-  if (!v.gps) tags.push('<span class="tag">sem rastreador</span>');
-  else if (!v.gps.ok) tags.push(`<span class="tag alerta">GPS ${esc(v.gps.quando)}</span>`);
-  else tags.push(`<span class="tag">${v.naGaragem === true ? 'na garagem' : v.naGaragem === false ? 'fora · ' + dist(v.distGaragem) : 'GPS ok'} · há ${tempo(v.gps.idadeMin)}</span>`);
+  if (!v.gps) tags.push('<span class="tag">não está na VF_frota</span>');
+  else if (!v.gps.ok) tags.push(`<span class="tag alerta">${v.gps.lat == null ? 'posição inválida' : 'GPS ' + esc(v.gps.quando)}</span>`);
+  else {
+    const onde = v.naGaragem === true ? 'na garagem'
+      : v.localAtual ? '📍 ' + esc(v.localAtual)
+      : v.gps.ref ? '📍 ' + esc(v.gps.ref)
+      : v.naGaragem === false ? 'a ' + dist(v.distGaragem) + ' da garagem' : 'GPS ok';
+    tags.push(`<a class="tag mapa" target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}" title="Abrir no mapa">${onde} · há ${tempo(v.gps.idadeMin)}</a>`);
+  }
   if (v.escalas && v.escalas.some(e => e.substituido)) tags.push('<span class="tag alerta">substituto</span>');
   if (v.foraCadastro) tags.push('<span class="tag">não cadastrado na frota</span>');
 
   return `<div class="card" style="--c:${s.c}" data-v="${esc(v.num)}">
-    <div class="topo"><span class="num">${esc(v.num)}</span><span class="placa">${esc(v.placa)}</span><span class="esp"></span><span class="badge">${s.txt}</span></div>
+    <div class="topo"><span class="num">${esc(v.num)}</span>${ANT[v.num] ? `<span class="antigo">${esc(ANT[v.num])}</span>` : ''}<span class="placa">${esc(v.placa)}</span><span class="esp"></span><span class="badge">${s.txt}</span></div>
     <div class="linha" title="${esc(v.linha)}">${esc(v.servico)}${v.linha ? ' · ' + esc(v.linha) : ''}</div>
     <div class="info">${info}</div>
     <div>${tags.join('')}</div>
@@ -344,7 +357,7 @@ function renderSaidas(){
     return `<div class="saida ${x.falta<0?'passada':''}" data-v="${esc(x.veic)}">
       <div class="h">${x.h}<small>${x.falta<0?'há '+tempo(-x.falta):'em '+tempo(x.falta)}</small></div>
       <div style="min-width:0"><div class="op" title="${esc(x.op)}">${esc(x.op)}</div>
-        <div class="vm"><b style="color:var(--texto)">${esc(x.veic)}</b>${x.substituido?' <s>'+esc(x.original)+'</s>':''} · ${esc(x.mot)}${x.local?' · '+esc(x.local):''}</div></div>
+        <div class="vm"><b style="color:var(--texto)">${vtxt(x.veic)}</b>${x.substituido?' <s>'+vtxt(x.original)+'</s>':''} · ${esc(x.mot)}${x.local?' · '+esc(x.local):''}</div></div>
       <div style="text-align:right"><span class="badge" style="--c:${c}">${txt}${extra}</span>${x.abastecer?'<br><span class="badge" style="--c:var(--laranja);margin-top:3px">⛽ abastecer</span>':''}</div>
     </div>`;
   }).join('') : '<div class="vazio">Nenhuma saída nas próximas horas.</div>';
@@ -354,7 +367,7 @@ function renderAlertas(){
   const a = dados.alertas || [];
   $('nAlertas').textContent = a.length;
   $('listaAlertas').innerHTML = a.length ? a.map(x =>
-    `<div class="item"><b>${esc(x.h)} · ${esc(x.veic)}</b> — ${esc(TIPO_ALERTA[x.tipo]||x.tipo)}<br><span class="sub">${esc(x.op)}</span></div>`).join('')
+    `<div class="item"><b>${esc(x.h)} · ${vtxt(x.veic)}</b> — ${esc(TIPO_ALERTA[x.tipo]||x.tipo)}<br><span class="sub">${esc(x.op)}</span></div>`).join('')
     : '<div class="vazio">Nenhum alerta em aberto.</div>';
   // fila do alarme: tudo que está aberto no servidor
   const ids = new Set(a.map(x => x.id));
@@ -371,10 +384,10 @@ function abrirAlarme(a){
   alertaAtual = a;
   $('alTipo').textContent = TIPO_ALERTA[a.tipo] || a.tipo;
   $('alFila').textContent = filaTxt();
-  $('alTitulo').textContent = `Veículo ${a.veic} · ${a.h}`;
+  $('alTitulo').innerHTML = `Veículo ${vtxt(a.veic)} · ${esc(a.h)}`;
   $('alDet').innerHTML = `${esc(a.op)}<br>${esc(a.motivo)}${a.local ? '<br>Local: ' + esc(a.local) : ''}`;
   document.querySelectorAll('input[name=resp]').forEach(r => r.checked = false);
-  $('alVeic').value = ''; $('alObs').value = ''; $('alErro').textContent = '';
+  $('alVeic').value = ''; $('alObs').value = ''; $('alNome').value = ''; $('alErro').textContent = '';
   $('alAlterar').style.display = 'none'; $('alObsLbl').textContent = 'Observação (opcional)';
   $('ovAlarme').classList.add('aberto'); $('flash').classList.add('on');
   iniciarSirene();
@@ -399,12 +412,12 @@ document.addEventListener('change', e => {
 
 $('alBaixar').onclick = async () => {
   const r = document.querySelector('input[name=resp]:checked');
-  const op = $('operador').value.trim();
+  const op = $('alNome').value.trim();
   const veic = $('alVeic').value.trim(), obs = $('alObs').value.trim();
-  if (!op) return erroAl('Preencha o seu nome no campo "Operador" no topo da tela.');
   if (!r) return erroAl('Escolha: confirmar o mesmo veículo ou sugerir alteração.');
   if (r.value === 'ALTERADO' && !veic) return erroAl('Informe o veículo sugerido.');
   if (r.value === 'ALTERADO' && !obs) return erroAl('Informe o motivo da alteração.');
+  if (op.length < 3) { $('alNome').focus(); return erroAl('Digite o seu nome para dar baixa.'); }
   $('alBaixar').disabled = true;
   try {
     await chamar('baixarAlerta', alertaAtual.id, r.value, veic, obs, op);
@@ -456,6 +469,7 @@ $('btnSom').onclick = ativarSom;
 document.addEventListener('click', e => {
   const k = e.target.closest('.kpi');
   if (k) { filtro = filtro === k.dataset.k ? 'TOTAL' : k.dataset.k; render(); return; }
+  if (e.target.closest('a')) return;
   const c = e.target.closest('[data-v]');
   if (c && !e.target.closest('.overlay')) abrirVeiculo(c.dataset.v);
   if (e.target.id === 'ovVeic') $('ovVeic').classList.remove('aberto');
@@ -468,31 +482,33 @@ function abrirVeiculo(num){
   const linha = (l, x) => x ? `<tr><td>${l}</td><td>${x}</td></tr>` : '';
   const c = v.combustivel || {};
   $('gaveta').innerHTML = `
-    <div style="display:flex;align-items:center;gap:10px"><h3>${esc(v.num)}</h3><span class="badge" style="--c:${s.c}">${s.txt}</span><span class="esp" style="flex:1"></span><button class="btn" id="gvFechar">Fechar</button></div>
+    <div style="display:flex;align-items:center;gap:10px"><h3>${vtxt(v.num)}</h3><span class="badge" style="--c:${s.c}">${s.txt}</span><span class="esp" style="flex:1"></span><button class="btn" id="gvFechar">Fechar</button></div>
     <table class="tab">
       ${linha('Placa', esc(v.placa))}${linha('Tipo / carroceria', esc(v.servico))}${linha('Alocação', esc(v.linha))}${linha('Setor', esc(v.setor))}
       ${linha('Ano · poltronas', [v.ano, v.poltronas && v.poltronas + ' lugares'].filter(Boolean).join(' · '))}${linha('Ar · sanitário', [v.ar && 'Ar: ' + esc(v.ar), v.sanitario && 'WC: ' + esc(v.sanitario)].filter(Boolean).join(' · '))}
-      ${linha('Posição', v.gps ? (v.gps.ok ? (v.naGaragem === true ? 'Na garagem' : v.naGaragem === false ? 'Fora da garagem (' + dist(v.distGaragem) + ')' : 'GPS ok') : 'GPS antigo') + ' · ' + esc(v.gps.quando) + (v.gps.lat != null ? ` · <a target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">ver no mapa</a>` : '') : 'Sem rastreador')}
+      ${linha('Posição', v.gps ? (v.gps.ok ? (v.naGaragem === true ? 'Na garagem' : v.localAtual ? esc(v.localAtual) : v.gps.ref ? esc(v.gps.ref) : v.naGaragem === false ? 'A ' + dist(v.distGaragem) + ' da garagem' : 'GPS ok') : v.gps.lat == null ? 'Posição inválida' : 'GPS antigo') + ' · ' + esc(v.gps.quando) + (v.gps.lat != null ? ` · <a target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">ver no mapa</a>` : '') : 'Não está na aba VF_frota')}
       ${linha('Hodômetro', v.gps && v.gps.km != null ? Math.round(v.gps.km).toLocaleString('pt-BR') + ' km' : '')}
       ${linha('Combustível', c.pct != null ? `${c.pct}% · ~${c.kmRestante} km restantes<br><span class="sub">${c.kmDesde} km desde o abastecimento de ${esc(c.ultimo)} (${c.ultimoLitros} L) · média ${String(c.media).replace('.',',')} km/l ${c.origemMedia === 'real' ? 'real do veículo' : 'da faixa ' + esc(c.faixa)} · tanque ${c.tanque} L</span>` : c.semConsumo ? 'Sem faixa de consumo (confira os lugares)' : c.semRegistro ? 'Aguardando 1º abastecimento na planilha' : c.semHodometro ? 'Sem hodômetro do GPS' : '')}
     </table>
     ${v.retencao ? `<div class="secao">Retenção</div><table class="tab">${linha('Defeito', esc(v.retencao.defeito))}${linha('Status', esc(v.retencao.status))}${linha('Responsável', esc(v.retencao.resp))}${linha('Entrada · previsão', esc(v.retencao.entrada) + (v.retencao.ps ? ' · ' + esc(v.retencao.ps) : ''))}${linha('Dias retido', esc(v.retencao.dr))}${linha('Almoxarifado', esc(v.retencao.almox))}</table>` : ''}
     ${v.manual ? `<div class="secao">Inoperante (manual)</div><table class="tab">${linha('Motivo', esc(v.manual.motivo))}${linha('Por', esc(v.manual.operador) + ' · ' + esc(v.manual.quando))}</table>` : ''}
     <div class="secao">Escalas de hoje</div>
-    <table class="tab">${(v.escalas||[]).length ? v.escalas.map(e => `<tr><td>${e.h}</td><td>${esc(e.op)}<br><span class="sub">${esc(e.mot)}${e.substituido ? ' · substituiu o ' + esc(e.original) : ''}</span></td></tr>`).join('') : '<tr><td colspan="2" class="sub">Sem escala hoje</td></tr>'}</table>
+    <table class="tab">${(v.escalas||[]).length ? v.escalas.map(e => `<tr><td>${e.h}</td><td>${esc(e.op)}<br><span class="sub">${esc(e.mot)}${e.substituido ? ' · substituiu o ' + vtxt(e.original) : ''}</span></td></tr>`).join('') : '<tr><td colspan="2" class="sub">Sem escala hoje</td></tr>'}</table>
 
     <div class="secao">Ações</div>
     ${v.status === 'INOPERANTE'
-      ? `<div class="acoes"><button class="btn ok" id="gvLiberar">Liberar veículo</button></div>`
+      ? `<div class="campo"><span>Seu nome (obrigatório)</span><input id="gvNome" autocomplete="off"></div>
+         <div class="acoes"><button class="btn ok" id="gvLiberar">Liberar veículo</button></div>`
       : v.status === 'RETIDO' ? '<div class="sub" style="margin-top:6px">Retido pela manutenção: a liberação acontece na planilha de retenção.</div>'
       : `<div class="campo"><span>Motivo para marcar como inoperante</span><input id="gvMotivo" placeholder="Ex.: pneu, sem motorista, avaria…"></div>
+         <div class="campo"><span>Seu nome (obrigatório)</span><input id="gvNome" autocomplete="off"></div>
          <div class="acoes"><button class="btn perigo" id="gvInop">Marcar inoperante</button></div>`}
     <div class="erro-msg" id="gvErro"></div>`;
   $('ovVeic').classList.add('aberto');
   $('gvFechar').onclick = () => $('ovVeic').classList.remove('aberto');
   const acao = async (fn, args, msg) => {
-    const op = $('operador').value.trim();
-    if (!op) return $('gvErro').textContent = 'Preencha o seu nome no campo "Operador" no topo da tela.';
+    const op = $('gvNome') ? $('gvNome').value.trim() : '';
+    if (op.length < 3) { if ($('gvNome')) $('gvNome').focus(); return $('gvErro').textContent = 'Digite o seu nome.'; }
     try { await chamar(fn, ...args, op); toast(msg); $('ovVeic').classList.remove('aberto'); carregar(); }
     catch (e) { $('gvErro').textContent = e.message; }
   };
@@ -520,8 +536,6 @@ aplicarTema(temaSalvo);
 $('btnTema').onclick = () => aplicarTema(document.documentElement.dataset.tema === 'escuro' ? 'claro' : 'escuro');
 
 /* ---------- início ---------- */
-try { $('operador').value = localStorage.getItem('operadorFrota') || ''; } catch (e) {}
-$('operador').addEventListener('change', () => { try { localStorage.setItem('operadorFrota', $('operador').value.trim()); } catch (e) {} });
 $('busca').addEventListener('input', () => dados && renderGrade());
 $('btnAtualizar').onclick = carregar;
 setInterval(() => {
