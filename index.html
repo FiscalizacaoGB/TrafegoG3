@@ -116,7 +116,7 @@
   /* ALARME */
   .overlay{position:fixed;inset:0;background:rgba(0,30,40,.6);display:none;align-items:center;justify-content:center;z-index:50}
   .overlay.aberto{display:flex}
-  .alarme{width:min(660px,94vw);background:var(--alarme-bg);color:var(--alarme-txt);border:3px solid var(--vermelho);border-radius:14px;padding:0 0 18px;overflow:hidden;animation:pisca 1s infinite}
+  .alarme{width:min(660px,94vw);background:var(--alarme-bg);color:var(--alarme-txt);border:3px solid var(--vermelho);border-radius:14px;padding:0 0 18px;overflow:auto;max-height:94vh;animation:pisca 1s infinite}
   .alarme .faixa{background:var(--vermelho);color:#fff;padding:10px 20px;display:flex;justify-content:space-between;align-items:center}
   .alarme .corpo{padding:12px 20px 0}
   @keyframes pisca{0%,100%{box-shadow:0 0 0 0 rgba(215,38,61,.9)}50%{box-shadow:0 0 70px 20px rgba(215,38,61,.55)}}
@@ -131,6 +131,12 @@
   .alarme label{display:flex;gap:8px;align-items:center;margin:6px 0;cursor:pointer;font-weight:600}
   .alarme input[type=radio]{accent-color:var(--marca-verde);width:18px;height:18px}
   .alarme .acoes{padding:0}
+  .alarme .mapa-link{display:inline-flex;align-items:center;gap:6px;margin:2px 0 4px;padding:7px 12px;border-radius:8px;background:var(--marca-escuro);color:#fff;text-decoration:none;font:700 13px Montserrat,Arial,sans-serif}
+  .alarme .mapa-link:hover{background:var(--marca-verde)}
+  .outras{border:1px dashed var(--borda-forte);border-radius:8px;padding:8px 10px;margin-top:8px;max-height:170px;overflow:auto}
+  .outras .tit{font:700 12px Montserrat,Arial,sans-serif;color:var(--marca-escuro);margin-bottom:4px}
+  [data-tema=escuro] .outras .tit{color:var(--texto)}
+  .alarme .outras label{font-weight:500;margin:3px 0;font-size:13px}
   .campo{display:flex;flex-direction:column;gap:4px;margin:8px 0}
   .campo input,.campo textarea,.campo select{background:var(--campo);border:1px solid var(--borda-forte);color:var(--texto);border-radius:6px;padding:8px;width:100%;min-width:0}
   .erro-msg{color:var(--vermelho);font-size:12px;min-height:16px;font-weight:600}
@@ -146,6 +152,46 @@
   .acoes{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;align-items:center}
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--marca-escuro);color:#fff;padding:10px 16px;border-radius:8px;z-index:60;display:none;box-shadow:0 6px 20px rgba(0,0,0,.25)}
   .vazio{color:var(--fraco);padding:14px;text-align:center}
+
+  /* ABAS DO PAINEL */
+  .abas{display:flex;gap:4px;padding:14px 20px 0;border-bottom:1px solid var(--borda)}
+  .abas button{background:none;border:0;border-bottom:3px solid transparent;padding:8px 16px;font:700 14px Montserrat,Arial,sans-serif;color:var(--fraco);cursor:pointer}
+  .abas button.ativo{color:var(--marca-escuro);border-bottom-color:var(--marca-amarelo)}
+  [data-tema=escuro] .abas button.ativo{color:var(--texto)}
+  .abas .n{background:var(--laranja);color:#fff;border-radius:999px;padding:0 7px;font-size:11px;margin-left:4px}
+
+  /* VISTA ESCALAS */
+  .esc-barra{display:flex;gap:10px;align-items:center;padding:14px 20px 8px;flex-wrap:wrap}
+  .dias{display:flex;background:var(--card);border:1px solid var(--borda-forte);border-radius:8px;overflow:hidden}
+  .dias button{border:0;background:none;padding:8px 14px;font:700 13px Montserrat,Arial,sans-serif;color:var(--fraco);cursor:pointer;border-right:1px solid var(--borda)}
+  .dias button:last-child{border-right:0}
+  .dias button.ativo{background:var(--marca-escuro);color:#fff}
+  .dias button small{font:600 11px "Open Sans",Arial,sans-serif;opacity:.8;margin-left:4px}
+  .esc-barra input[type=search]{background:var(--campo);border:1px solid var(--borda-forte);color:var(--texto);border-radius:6px;padding:8px 10px;width:300px}
+  .esc-barra label{display:flex;gap:6px;align-items:center;font-size:12.5px;color:var(--fraco);cursor:pointer}
+  .esc-wrap{display:grid;grid-template-columns:230px 1fr;gap:14px;padding:4px 20px 24px;align-items:start}
+  .indice{position:sticky;top:72px;background:var(--painel);border:1px solid var(--borda);border-radius:10px;overflow:hidden;box-shadow:var(--sombra)}
+  .indice a{display:flex;justify-content:space-between;gap:8px;padding:9px 12px;border-bottom:1px solid var(--linha);color:var(--texto);text-decoration:none;font:600 12.5px "Open Sans",Arial,sans-serif}
+  .indice a:hover{background:var(--linha)}
+  .indice a b{font:800 12px Montserrat,Arial,sans-serif;color:var(--marca-escuro)}
+  [data-tema=escuro] .indice a b{color:var(--texto)}
+  .grupo{background:var(--painel);border:1px solid var(--borda);border-radius:10px;overflow:hidden;margin-bottom:14px;box-shadow:var(--sombra);scroll-margin-top:80px}
+  .grupo h2{margin:0;padding:10px 14px;background:var(--marca-escuro);color:#fff;font:800 14px Montserrat,Arial,sans-serif;letter-spacing:.4px;display:flex;gap:12px;align-items:center;border-bottom:3px solid var(--marca-amarelo)}
+  .grupo h2 .sub{color:#B5D0D8;font-size:12px;font-weight:600}
+  table.esc{width:100%;border-collapse:collapse;font-size:13px}
+  table.esc th{text-align:left;font:700 11px Montserrat,Arial,sans-serif;text-transform:uppercase;letter-spacing:.5px;color:var(--fraco);padding:7px 10px;background:var(--linha)}
+  table.esc td{padding:7px 10px;border-bottom:1px solid var(--linha);vertical-align:middle}
+  table.esc tr.passou td{opacity:.45}
+  table.esc tr.problema td{background:color-mix(in srgb,var(--vermelho) 7%,transparent)}
+  table.esc tr.trocado td:nth-child(3){background:color-mix(in srgb,var(--marca-amarelo) 22%,transparent)}
+  table.esc .hr{font:800 15px Montserrat,Arial,sans-serif;white-space:nowrap}
+  table.esc .vc{font:800 15px Montserrat,Arial,sans-serif;white-space:nowrap}
+  table.esc .vc s{font:600 11.5px "Open Sans",Arial,sans-serif;color:var(--fraco);margin-left:4px}
+  table.esc .btn{padding:4px 10px;font-size:12px}
+  .aviso-troca{border-radius:6px;padding:7px 10px;font-size:12.5px;margin-top:6px}
+  .aviso-troca.ok{background:color-mix(in srgb,var(--verde) 12%,transparent);color:var(--verde)}
+  .aviso-troca.ruim{background:color-mix(in srgb,var(--vermelho) 12%,transparent);color:var(--vermelho);font-weight:600}
+  .aviso-troca.atencao{background:var(--aviso-bg);color:var(--aviso-txt)}
   @media (max-width:1300px){.kpis{grid-template-columns:repeat(4,minmax(0,1fr))} main{grid-template-columns:1fr} aside{position:static;max-height:none}}
 </style>
 </head>
@@ -172,6 +218,11 @@
   <button class="btn" id="btnAtualizar">Atualizar</button>
 </header>
 
+<nav class="abas">
+  <button data-vista="frota" class="ativo">🚌 Frota</button>
+  <button data-vista="escalas">📋 Escalas <span class="n" id="nTrocas" style="display:none"></span></button>
+</nav>
+<div id="vFrota">
 <section class="kpis" id="kpis"></section>
 <div class="barra">
   <input id="busca" placeholder="Buscar veículo, placa, linha, operação ou motorista…">
@@ -193,6 +244,20 @@
     </div>
   </aside>
 </main>
+</div>
+
+<div id="vEscalas" style="display:none">
+  <div class="esc-barra">
+    <div class="dias" id="escDias"></div>
+    <input type="search" id="escBusca" placeholder="Buscar operação, veículo ou motorista…">
+    <label><input type="checkbox" id="escOcultar" checked> Ocultar horários que já passaram</label>
+    <span class="sub" id="escConta"></span>
+  </div>
+  <div class="esc-wrap">
+    <nav class="indice" id="escIndice"></nav>
+    <div id="escGrupos"></div>
+  </div>
+</div>
 
 <div class="flash" id="flash"></div>
 <div class="overlay" id="ovAlarme">
@@ -201,11 +266,14 @@
     <div class="corpo">
     <div class="grande" id="alTitulo"></div>
     <div class="det" id="alDet"></div>
+    <div id="alMapa"></div>
     <fieldset>
       <label><input type="radio" name="resp" value="CONFIRMADO"> Confirmo o mesmo veículo</label>
       <label><input type="radio" name="resp" value="ALTERADO"> Sugerir alteração de veículo</label>
       <div id="alAlterar" style="display:none">
         <div class="campo"><span>Veículo sugerido</span><input id="alVeic" inputmode="numeric" placeholder="Ex.: 9560"></div>
+        <div id="alCheck"></div>
+        <div id="alOutras"></div>
       </div>
       <div class="campo"><span id="alObsLbl">Observação (opcional)</span><textarea id="alObs" rows="2"></textarea></div>
       <div class="campo"><span>Seu nome (obrigatório)</span><input id="alNome" placeholder="Nome de quem está dando a baixa" autocomplete="off"></div>
@@ -302,6 +370,8 @@ function render(){
   $('infos').innerHTML = inf.length ? '<span class="rot">ℹ Informações</span>' + inf.map(i =>
     `<button class="chip-info" data-info="${esc(i.id)}" title="Clique para ver a lista">${esc(i.titulo)}<span class="qtd">${i.tipo === 'texto' ? '!' : i.itens.length}</span></button>`).join('') : '';
   renderGrade(); renderSaidas(); renderAlertas();
+  if (vista === 'escalas') renderEscalas();
+  else { const nTr = (dados.escalas || []).filter(e => e.substituido && e.dias >= 0).length; $('nTrocas').style.display = nTr ? '' : 'none'; $('nTrocas').textContent = nTr; }
 }
 
 function passaFiltro(v){
@@ -385,7 +455,7 @@ function renderAlertas(){
   const a = dados.alertas || [];
   $('nAlertas').textContent = a.length;
   $('listaAlertas').innerHTML = a.length ? a.map(x =>
-    `<div class="item"><b>${esc(hd(x.dia, x.h))} · ${vtxt(x.veic)}</b> — ${esc(TIPO_ALERTA[x.tipo]||x.tipo)}<br><span class="sub">${esc(x.op)}</span></div>`).join('')
+    `<div class="item"><b>${esc(hd(x.dia, x.h))} · ${vtxt(x.veic)}</b> — ${esc(TIPO_ALERTA[x.tipo]||x.tipo)}<br><span class="sub">${esc(x.op)}</span>${(() => { const v = dados.veiculos.find(y => y.num === String(x.veic)); return v && v.gps && v.gps.lat != null ? ` · <a target="_blank" style="color:var(--marca-verde);font-weight:600" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">mapa</a>` : ''; })()}</div>`).join('')
     : '<div class="vazio">Nenhum alerta em aberto.</div>';
   // fila do alarme: tudo que está aberto no servidor
   const ids = new Set(a.map(x => x.id));
@@ -404,6 +474,29 @@ function abrirAlarme(a){
   $('alFila').textContent = filaTxt();
   $('alTitulo').innerHTML = `Veículo ${vtxt(a.veic)} · ${esc(hd(a.dia, a.h))}`;
   $('alDet').innerHTML = `${esc(a.op)}<br>${esc(a.motivo)}${a.local ? '<br>Local: ' + esc(a.local) : ''}`;
+  // link do mapa com a última coordenada conhecida do veículo
+  const v = (dados.veiculos || []).find(x => x.num === String(a.veic));
+  if (v && v.gps && v.gps.lat != null) {
+    const onde = v.naGaragem ? 'na garagem' : v.localAtual || v.cidade || (v.distGaragem != null ? 'a ' + dist(v.distGaragem) + ' da garagem' : '');
+    $('alMapa').innerHTML = `<a class="mapa-link" target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">📍 Ver o veículo no Google Maps</a>
+      <div class="sub">Última posição: ${esc(v.gps.quando)}${onde ? ' · ' + esc(onde) : ''}${v.gps.ok ? '' : ' · <b style="color:var(--vermelho)">posição antiga</b>'}</div>`;
+  } else {
+    $('alMapa').innerHTML = `<div class="sub">📍 ${v && v.gps ? 'Posição inválida na VF_frota' : 'Veículo sem coordenada na VF_frota'}</div>`;
+  }
+  // outras viagens do mesmo veículo que ainda vão acontecer (hoje marcadas, amanhã desmarcadas)
+  const chave = String(a.id).split('|').slice(0, 4).join('|');
+  const outras = (dados.escalas || []).filter(e => e.veic === String(a.veic) && e.id !== chave && e.falta >= 0);
+  $('alOutras').innerHTML = outras.length ? `<div class="outras"><div class="tit">Trocar também as outras viagens do ${vtxt(a.veic)}:</div>
+    ${outras.map(e => `<label><input type="checkbox" class="alOutra" value="${esc(e.id)}" ${e.dias <= 0 ? 'checked' : ''}> ${esc(hd(e.dia, e.h))} · ${esc(e.op)}</label>`).join('')}</div>`
+    : `<div class="sub" style="margin-top:4px">O ${vtxt(a.veic)} não tem outras viagens pela frente.</div>`;
+  $('alCheck').innerHTML = '';
+  const atual = (dados.escalas || []).find(e => e.id === chave);
+  const conferir = () => {
+    const alvos = [atual].concat([...document.querySelectorAll('.alOutra:checked')].map(c => (dados.escalas || []).find(e => e.id === c.value))).filter(Boolean);
+    $('alCheck').innerHTML = conferirVeiculo($('alVeic').value, alvos);
+  };
+  $('alVeic').oninput = conferir;
+  document.querySelectorAll('.alOutra').forEach(c => c.onchange = conferir);
   document.querySelectorAll('input[name=resp]').forEach(r => r.checked = false);
   $('alVeic').value = ''; $('alObs').value = ''; $('alNome').value = ''; $('alErro').textContent = '';
   $('alAlterar').style.display = 'none'; $('alObsLbl').textContent = 'Observação (opcional)';
@@ -438,11 +531,12 @@ $('alBaixar').onclick = async () => {
   if (op.length < 3) { $('alNome').focus(); return erroAl('Digite o seu nome para dar baixa.'); }
   $('alBaixar').disabled = true;
   try {
-    await chamar('baixarAlerta', alertaAtual.id, r.value, veic, obs, op);
+    const outras = r.value === 'ALTERADO' ? [...document.querySelectorAll('.alOutra:checked')].map(c => c.value) : [];
+    await chamar('baixarAlerta', alertaAtual.id, r.value, veic, obs, op, outras);
     const id = alertaAtual.id;
     fila = fila.filter(x => x.id !== id);
     if (dados) dados.alertas = dados.alertas.filter(x => x.id !== id);
-    toast('Alerta baixado.');
+    toast(outras.length ? `Alerta baixado e ${outras.length + 1} viagens trocadas.` : 'Alerta baixado.');
     fecharAlarme(); carregar();
   } catch (e) { erroAl(e.message); }
   finally { $('alBaixar').disabled = false; }
@@ -555,6 +649,133 @@ function abrirInfo(id){
   $('gvFechar').onclick = () => $('ovVeic').classList.remove('aberto');
 }
 
+/* ---------- vista Escalas ---------- */
+let vista = 'frota', escDia = 0;
+try { vista = localStorage.getItem('vistaFrota') || 'frota'; } catch (e) {}
+function trocarVista(v){
+  vista = v;
+  document.querySelectorAll('.abas button').forEach(b => b.classList.toggle('ativo', b.dataset.vista === v));
+  $('vFrota').style.display = v === 'frota' ? '' : 'none';
+  $('vEscalas').style.display = v === 'escalas' ? '' : 'none';
+  try { localStorage.setItem('vistaFrota', v); } catch (e) {}
+  if (v === 'escalas' && dados) renderEscalas();
+}
+document.querySelectorAll('.abas button').forEach(b => b.onclick = () => trocarVista(b.dataset.vista));
+$('escBusca').addEventListener('input', () => dados && renderEscalas());
+$('escOcultar').addEventListener('change', () => dados && renderEscalas());
+
+const ORDEM_ORIGEM = ['METROPOLITANO', 'RECONCAVO', 'RECÔNCAVO', 'SALVADOR X IRARÁ', 'FRETAMENTO', 'FRETAMENTO BYD - ADM', 'FRETAMENTO BYD - TURNO'];
+const slug = t => 'g-' + String(t).normalize('NFD').replace(/[^\w]+/g, '-');
+
+function renderEscalas(){
+  const todas = dados.escalas || [];
+  const nTr = todas.filter(e => e.substituido && e.dias >= 0).length;
+  $('nTrocas').style.display = nTr ? '' : 'none'; $('nTrocas').textContent = nTr;
+  const cont = d => todas.filter(e => e.dias === d).length;
+  $('escDias').innerHTML = [[-1, 'Ontem'], [0, 'Hoje'], [1, 'Amanhã']].map(([d, l]) =>
+    `<button data-dia="${d}" class="${escDia === d ? 'ativo' : ''}">${l}<small>${cont(d)}</small></button>`).join('');
+  $('escDias').querySelectorAll('button').forEach(b => b.onclick = () => { escDia = +b.dataset.dia; renderEscalas(); });
+
+  const q = $('escBusca').value.trim().toUpperCase();
+  const ocultar = $('escOcultar').checked && escDia === 0;
+  const porVeic = {}; dados.veiculos.forEach(v => porVeic[v.num] = v);
+  const lista = todas.filter(e => e.dias === escDia)
+    .filter(e => !ocultar || e.falta >= -15)
+    .filter(e => !q || [e.op, e.veic, ANT[e.veic] || '', e.original, e.mot, e.origem].join(' ').toUpperCase().includes(q));
+  $('escConta').textContent = lista.length + ' escala(s)';
+
+  const grupos = {};
+  lista.forEach(e => (grupos[e.origem] = grupos[e.origem] || []).push(e));
+  const nomes = Object.keys(grupos).sort((a, b) => {
+    const ia = ORDEM_ORIGEM.indexOf(a), ib = ORDEM_ORIGEM.indexOf(b);
+    return (ia < 0 ? 99 : ia) - (ib < 0 ? 99 : ib) || a.localeCompare(b);
+  });
+  $('escIndice').innerHTML = nomes.length ? nomes.map(n => `<a href="#${slug(n)}">${esc(n)}<b>${grupos[n].length}</b></a>`).join('') : '<div class="vazio">—</div>';
+  $('escGrupos').innerHTML = nomes.length ? nomes.map(n => {
+    const ls = grupos[n];
+    const trocas = ls.filter(e => e.substituido).length;
+    return `<section class="grupo" id="${slug(n)}"><h2>${esc(n)}<span class="sub">${ls.length} escala(s)${trocas ? ' · ' + trocas + ' troca(s)' : ''}</span></h2>
+      <table class="esc"><thead><tr><th style="width:90px">Horário</th><th>Operação</th><th style="width:170px">Veículo</th><th style="width:130px">Situação</th><th>Motorista</th><th style="width:90px"></th></tr></thead><tbody>
+      ${ls.map(e => {
+        const v = porVeic[e.veic];
+        const s = v ? (STATUS[v.status] || { txt: v.status, c: 'var(--cinza)' }) : { txt: '—', c: 'var(--cinza)' };
+        const prob = v && (v.status === 'RETIDO' || v.status === 'INOPERANTE') && e.falta >= 0;
+        const tt = e.troca ? `Trocado por ${e.troca.operador || '?'} em ${e.troca.quando || ''}: ${e.troca.motivo || ''}` : '';
+        return `<tr class="${e.falta < 0 && escDia === 0 ? 'passou' : ''} ${prob ? 'problema' : ''} ${e.substituido ? 'trocado' : ''}">
+          <td class="hr">${esc(e.h)}</td>
+          <td>${esc(e.op)}</td>
+          <td class="vc" title="${esc(tt)}">${vtxt(e.veic)}${e.substituido ? `<s>era ${vtxt(e.original)}</s>` : ''}</td>
+          <td><span class="badge" style="--c:${s.c}">${s.txt}</span></td>
+          <td>${esc(e.mot)}</td>
+          <td><button class="btn" data-troca="${esc(e.id)}">Trocar</button></td>
+        </tr>`;
+      }).join('')}</tbody></table></section>`;
+  }).join('') : '<div class="vazio">Nenhuma escala neste dia' + (ocultar ? ' (os horários que já passaram estão ocultos)' : '') + '.</div>';
+  $('escGrupos').querySelectorAll('[data-troca]').forEach(b => b.onclick = ev => { ev.stopPropagation(); abrirTroca(b.dataset.troca); });
+}
+
+/** Confere o veículo digitado para assumir as escalas "alvos": situação, conflito de horário (±90 min) e combustível. */
+function conferirVeiculo(digitado, alvos){
+  const n = (() => { const x = String(digitado || '').replace(/\D/g, '').replace(/^0+(?=\d)/, ''); for (const k in ANT) if (ANT[k] === x) return k; return x; })();
+  if (!n) return '';
+  const v = (dados.veiculos || []).find(x => x.num === n);
+  const msgs = [];
+  if (!v) msgs.push(['atencao', 'Veículo ' + n + ' não está no painel. Confira o número.']);
+  else {
+    if (v.status === 'RETIDO') msgs.push(['ruim', 'Retido: ' + ((v.retencao && v.retencao.defeito) || '')]);
+    else if (v.status === 'INOPERANTE') msgs.push(['ruim', 'Inoperante: ' + ((v.manual && v.manual.motivo) || '')]);
+    const min = e => e.dias * 1440 + (+e.h.slice(0, 2)) * 60 + (+e.h.slice(3, 5));
+    const ids = new Set(alvos.map(e => e.id));
+    const vistos = new Set();
+    alvos.forEach(e => (dados.escalas || []).filter(o => o.veic === n && !ids.has(o.id) && Math.abs(min(o) - min(e)) <= 90).forEach(o => {
+      if (vistos.has(o.id)) return; vistos.add(o.id);
+      msgs.push(['atencao', 'Choque de horário: já está escalado ' + hd(o.dia, o.h) + ' · ' + o.op]);
+    }));
+    if (v.combustivel && v.combustivel.precisa) msgs.push(['atencao', 'Combustível estimado em ' + v.combustivel.pct + '%']);
+    if (!msgs.length) msgs.push(['ok', '✓ ' + ((STATUS[v.status] || {}).txt || '') + (v.naGaragem ? ' · na garagem' : v.cidade ? ' · ' + v.cidade : '') + ' · sem conflito de horário']);
+  }
+  return msgs.map(([k, t]) => `<div class="aviso-troca ${k}">${esc(t)}</div>`).join('');
+}
+
+function abrirTroca(id){
+  const e = (dados.escalas || []).find(x => x.id === id);
+  if (!e) return;
+  const porVeic = {}; dados.veiculos.forEach(v => porVeic[v.num] = v);
+  const opcoes = dados.veiculos.slice().sort((a, b) => (a.status === 'DISPONIVEL' ? 0 : 1) - (b.status === 'DISPONIVEL' ? 0 : 1) || a.num - b.num)
+    .map(v => `<option value="${esc(v.num)}">${esc((STATUS[v.status] || {}).txt || v.status)}${ANT[v.num] ? ' · ' + esc(ANT[v.num]) : ''}${v.placa ? ' · ' + esc(v.placa) : ''}</option>`).join('');
+  $('gaveta').innerHTML = `
+    <div style="display:flex;align-items:center;gap:10px"><h3 style="font-size:20px">Trocar veículo</h3><span style="flex:1"></span><button class="btn" id="gvFechar">Cancelar</button></div>
+    <table class="tab">
+      <tr><td>Escala</td><td><b>${esc(hd(e.dia, e.h))}</b> · ${esc(e.op)}<br><span class="sub">${esc(e.origem)} · ${esc(e.mot)}</span></td></tr>
+      <tr><td>Veículo atual</td><td><b>${vtxt(e.veic)}</b>${e.substituido ? ` <span class="sub">(original: ${vtxt(e.original)})</span>` : ''}</td></tr>
+    </table>
+    <div class="campo"><span>Novo veículo</span><input id="trNovo" list="trLista" inputmode="numeric" placeholder="Digite o número (qualquer um dos dois números de ordem)"><datalist id="trLista">${opcoes}</datalist></div>
+    <div id="trCheck"></div>
+    <div class="campo"><span>Motivo da troca (obrigatório)</span><input id="trMotivo" placeholder="Ex.: carro retido, avaria, ajuste de escala…"></div>
+    <div class="campo"><span>Seu nome (obrigatório)</span><input id="trNome" autocomplete="off"></div>
+    <div class="erro-msg" id="trErro"></div>
+    <div class="acoes"><button class="btn prim" id="trOk">Confirmar troca</button>
+      ${e.substituido ? `<button class="btn" id="trVolta">Voltar ao original (${esc(e.original)})</button>` : ''}</div>`;
+  $('ovVeic').classList.add('aberto');
+  $('gvFechar').onclick = () => $('ovVeic').classList.remove('aberto');
+
+  $('trNovo').oninput = () => { $('trCheck').innerHTML = conferirVeiculo($('trNovo').value, [e]); };
+  const salvar = async novo => {
+    const motivo = $('trMotivo').value.trim(), nome = $('trNome').value.trim();
+    $('trErro').textContent = '';
+    if (!novo) return $('trErro').textContent = 'Informe o novo veículo.';
+    if (!motivo) return $('trErro').textContent = 'Informe o motivo da troca.';
+    if (nome.length < 3) return $('trErro').textContent = 'Digite o seu nome.';
+    $('trOk').disabled = true;
+    try { await chamar('trocarVeiculoEscala', e.id, novo, motivo, nome); toast('Troca registrada.'); $('ovVeic').classList.remove('aberto'); carregar(); }
+    catch (err) { $('trErro').textContent = err.message; }
+    finally { if ($('trOk')) $('trOk').disabled = false; }
+  };
+  $('trOk').onclick = () => salvar($('trNovo').value.trim());
+  if ($('trVolta')) $('trVolta').onclick = () => salvar(e.original);
+  $('trNovo').focus();
+}
+
 function toast(m){ const t = $('toast'); t.textContent = m; t.style.display = 'block'; clearTimeout(t._t); t._t = setTimeout(() => t.style.display = 'none', 2500); }
 
 /* ---------- marca e tema ---------- */
@@ -577,6 +798,7 @@ setInterval(() => {
   const d = new Date(Date.now() + offsetRelogio*1000);
   $('relogio').textContent = d.toTimeString().slice(0,8);
 }, 1000);
+trocarVista(vista);
 carregar();
 setInterval(carregar, INTERVALO * 1000);
 </script>
