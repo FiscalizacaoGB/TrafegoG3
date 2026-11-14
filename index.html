@@ -331,8 +331,8 @@ async function chamar(fn, ...args){
   if (window.SIMULADOR) return window.SIMULADOR[fn](...args);
   let r;
   try {
-    r = fn === 'getPainel'
-      ? await fetch(API_URL + '?acao=dados&chave=' + encodeURIComponent(CHAVE) + '&t=' + Date.now())
+    r = (fn === 'getPainel' || fn === 'estadoAlertas')
+      ? await fetch(API_URL + '?acao=' + (fn === 'getPainel' ? 'dados' : fn) + '&chave=' + encodeURIComponent(CHAVE) + '&t=' + Date.now())
       : await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
           body: JSON.stringify({ acao: fn, chave: CHAVE, args: args }) });
   } catch (e) { throw new Error('sem conexão com o Google'); }
@@ -538,10 +538,35 @@ $('alBaixar').onclick = async () => {
     if (dados) dados.alertas = dados.alertas.filter(x => x.id !== id);
     toast(outras.length ? `Alerta baixado e ${outras.length + 1} viagens trocadas.` : 'Alerta baixado.');
     fecharAlarme(); carregar();
-  } catch (e) { erroAl(e.message); }
+  } catch (e) {
+    if (/já foi baixado/.test(e.message)) { removerAlertaLocal(alertaAtual.id, e.message); carregar(); }
+    else erroAl(e.message);
+  }
   finally { $('alBaixar').disabled = false; }
 };
 function erroAl(m){ $('alErro').textContent = m; }
+
+/* ---------- sincronização entre telas ---------- */
+function removerAlertaLocal(id, msg){
+  fila = fila.filter(x => x.id !== id);
+  if (dados) dados.alertas = (dados.alertas || []).filter(x => x.id !== id);
+  if (alertaAtual && alertaAtual.id === id) { fecharAlarme(); if (msg) toast(msg); }
+  if (dados) renderAlertas();
+}
+async function verificarAlertas(){
+  try {
+    if (!dados || ocupado) return;
+    const st = await chamar('estadoAlertas');
+    const abertos = new Set(st.abertos || []);
+    // baixados em outro computador
+    (dados.alertas || []).filter(a => !abertos.has(a.id)).forEach(a =>
+      removerAlertaLocal(a.id, 'Alerta ' + a.veic + ' (' + a.h + ') baixado por ' + ((st.baixas || {})[a.id] || 'outro operador') + '.'));
+    // alerta novo que esta tela ainda não tem: atualiza na hora
+    const conhecidos = new Set((dados.alertas || []).map(a => a.id));
+    if ([...abertos].some(id => !conhecidos.has(id))) carregar();
+  } catch (e) { /* silencioso: a atualização normal de 60 s continua */ }
+  finally { setTimeout(verificarAlertas, alertaAtual ? 5000 : 15000); }
+}
 
 /* ---------- som ---------- */
 let audio = null, sirene = null;
@@ -800,6 +825,7 @@ setInterval(() => {
 }, 1000);
 trocarVista(vista);
 carregar();
+setTimeout(verificarAlertas, 5000);
 setInterval(carregar, INTERVALO * 1000);
 </script>
 </body>
