@@ -276,7 +276,6 @@
   <div class="op-wrap">
     <div class="bloco"><h2>Próximas saídas <span id="nSaidas"></span></h2><div id="opSaidas"></div></div>
     <div class="op-col">
-      <div class="bloco vermelho"><h2>Alertas em aberto <span id="nAlertas"></span></h2><div id="listaAlertas"></div></div>
       <div class="bloco"><h2>Reserva na garagem <span id="nReserva"></span></h2><div id="opReserva"></div></div>
     </div>
   </div>
@@ -442,13 +441,12 @@ function render(){
 const KPIS_OP = [
   ['DISPONIVEL','Disponíveis','var(--verde)','frota'], ['ESCALADO','Escalados (próx. 2 h)','var(--ambar)','frota'],
   ['EM_OPERACAO','Em operação','var(--azul)','frota'], ['FORA_SEM_ESCALA','Fora da garagem','var(--ciano)','frota'],
-  ['ALERTAS','Alertas em aberto','var(--vermelho)',''], ['RETIDO','Retidos','var(--vermelho)','manutencao'],
-  ['INOPERANTE','Inoperantes','var(--roxo)','manutencao']
+  ['RETIDO','Retidos','var(--vermelho)','manutencao'], ['INOPERANTE','Inoperantes','var(--roxo)','manutencao'],
+  ['ABASTECER','Precisam abastecer','var(--laranja)','frota']
 ];
 function renderOperacao(){
-  const k = Object.assign({ ALERTAS: (dados.alertas || []).length }, dados.kpis);
-  const temComb = dados.veiculos.some(v => v.combustivel && v.combustivel.pct != null);
-  const lista = KPIS_OP.concat(temComb ? [['ABASTECER','Precisam abastecer','var(--laranja)','frota']] : []);
+  const k = Object.assign({}, dados.kpis);
+  const lista = KPIS_OP;
   $('opKpis').style.gridTemplateColumns = `repeat(${lista.length},minmax(0,1fr))`;
   $('opKpis').innerHTML = lista.map(([id, l, c, ir]) =>
     `<div class="kpi" style="--c:${c}" data-ir="${ir}" data-kf="${id}"><div class="n">${k[id] || 0}</div><div class="l">${l}</div></div>`).join('');
@@ -588,8 +586,8 @@ function tempo(min){
 
 function renderAlertas(){
   const a = dados.alertas || [];
-  $('nAlertas').textContent = a.length;
-  $('listaAlertas').innerHTML = a.length ? a.map(x => {
+  if ($('listaAlertas')) $('nAlertas').textContent = a.length;
+  if ($('listaAlertas')) $('listaAlertas').innerHTML = a.length ? a.map(x => {
     const v = dados.veiculos.find(y => y.num === String(x.veic));
     const mapa = v && v.gps && v.gps.lat != null ? `<a target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">📍 Mapa</a>` : '';
     return `<div class="al-op" data-alerta="${esc(x.id)}"><i></i><div><b>${vtxt(x.veic)} · ${esc(hd(x.dia, x.h))}</b> — ${esc(TIPO_ALERTA[x.tipo] || x.tipo)}<small>${esc(x.op)}</small></div>${mapa}</div>`;
