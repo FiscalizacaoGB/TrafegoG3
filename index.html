@@ -156,7 +156,7 @@
   /* ABA OPERAÇÃO */
   .op-kpis{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;padding:16px 20px 6px}
   .op-kpis .kpi{border-top:0;border-left:5px solid var(--c,var(--cinza))}
-  .op-wrap{display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:16px;padding:10px 20px 24px;align-items:start}
+  .op-wrap{display:grid;grid-template-columns:minmax(0,1fr);gap:16px;padding:10px 20px 24px;align-items:start}
   .op-col{display:flex;flex-direction:column;gap:16px}
   .tab-op{width:100%;border-collapse:collapse}
   .tab-op th{text-align:left;font:700 11px Montserrat,Arial,sans-serif;color:var(--fraco);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;background:var(--linha)}
@@ -275,9 +275,6 @@
   <section class="op-kpis" id="opKpis"></section>
   <div class="op-wrap">
     <div class="bloco"><h2>Próximas saídas <span id="nSaidas"></span></h2><div id="opSaidas"></div></div>
-    <div class="op-col">
-      <div class="bloco"><h2>Reserva na garagem <span id="nReserva"></span></h2><div id="opReserva"></div></div>
-    </div>
   </div>
 </div>
 
@@ -472,6 +469,7 @@ function renderOperacao(){
   const temGaragem = dados.veiculos.some(v => v.naGaragem === true);
   const res = dados.veiculos.filter(v => v.status === 'DISPONIVEL' && (!temGaragem || v.naGaragem === true))
     .sort((a, b) => ((b.combustivel && b.combustivel.pct != null) ? b.combustivel.pct : -1) - ((a.combustivel && a.combustivel.pct != null) ? a.combustivel.pct : -1) || a.num - b.num);
+  if (!$('opReserva')) return;
   $('nReserva').textContent = res.length + (temGaragem ? ' na garagem' : ' disponíveis');
   $('opReserva').innerHTML = res.length ? res.map(v => {
     const c = v.combustivel || {};
