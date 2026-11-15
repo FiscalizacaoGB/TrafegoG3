@@ -153,6 +153,50 @@
   .toast{position:fixed;bottom:18px;left:50%;transform:translateX(-50%);background:var(--marca-escuro);color:#fff;padding:10px 16px;border-radius:8px;z-index:60;display:none;box-shadow:0 6px 20px rgba(0,0,0,.25)}
   .vazio{color:var(--fraco);padding:14px;text-align:center}
 
+  /* ABA OPERAÇÃO */
+  .op-kpis{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:10px;padding:16px 20px 6px}
+  .op-kpis .kpi{border-top:0;border-left:5px solid var(--c,var(--cinza))}
+  .op-wrap{display:grid;grid-template-columns:minmax(0,1fr) 460px;gap:16px;padding:10px 20px 24px;align-items:start}
+  .op-col{display:flex;flex-direction:column;gap:16px}
+  .tab-op{width:100%;border-collapse:collapse}
+  .tab-op th{text-align:left;font:700 11px Montserrat,Arial,sans-serif;color:var(--fraco);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;background:var(--linha)}
+  .tab-op td{padding:9px 12px;border-bottom:1px solid var(--linha);vertical-align:middle}
+  .tab-op td.h{font:800 20px Montserrat,Arial,sans-serif;width:100px;white-space:nowrap}
+  .tab-op td.h small,.tab-op td.op small{display:block;font:600 11.5px "Open Sans",Arial,sans-serif;color:var(--fraco)}
+  .tab-op td.op{font-weight:600}
+  .tab-op td.vc{font:800 18px Montserrat,Arial,sans-serif;white-space:nowrap;cursor:pointer}
+  .tab-op td.vc s{font:600 11px "Open Sans",Arial,sans-serif;color:var(--fraco);margin-left:4px}
+  .tab-op tr.passou td{opacity:.42}
+  .tab-op tr.prob td{background:color-mix(in srgb,var(--vermelho) 8%,transparent)}
+  .tab-op .btn{padding:4px 10px;font-size:12px}
+  .bloco.vermelho h2{background:var(--vermelho)}
+  .al-op{display:grid;grid-template-columns:4px 1fr auto;gap:12px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--linha);cursor:pointer}
+  .al-op i{align-self:stretch;background:var(--vermelho);border-radius:2px}
+  .al-op b{font:800 15px Montserrat,Arial,sans-serif}
+  .al-op small{display:block;color:var(--fraco)}
+  .al-op a{background:var(--marca-escuro);color:#fff;border-radius:6px;padding:5px 10px;font:700 12px Montserrat,Arial,sans-serif;text-decoration:none;white-space:nowrap}
+  .rv{display:grid;grid-template-columns:minmax(0,1fr) 90px 44px 110px;gap:10px;align-items:center;padding:8px 14px;border-bottom:1px solid var(--linha);cursor:pointer}
+  .rv:hover{background:var(--linha)}
+  .rv b{font:800 16px Montserrat,Arial,sans-serif}
+  .rv>div>small{display:block;color:var(--fraco);font-size:11.5px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .rv .fu{height:7px;background:var(--linha);border-radius:4px;overflow:hidden}.rv .fu i{display:block;height:100%}
+  .rv .pc{font:700 12px Montserrat,Arial,sans-serif}
+  .rv .li{font-size:12px;color:var(--verde);font-weight:600;text-align:right}
+  .avisos:empty{display:none}
+  .vencida{color:var(--vermelho);font-weight:700}
+  .filtro-info{padding:0 20px 8px;font-size:12.5px;color:var(--fraco)}
+  .filtro-info a{color:var(--marca-verde);font-weight:700;cursor:pointer}
+  .secao-tab{padding:16px 20px 24px}
+  .secao-tab .bloco{margin-bottom:16px}
+  table.mt{width:100%;border-collapse:collapse;font-size:13px}
+  table.mt th{text-align:left;font:700 11px Montserrat,Arial,sans-serif;text-transform:uppercase;letter-spacing:.5px;color:var(--fraco);padding:7px 10px;background:var(--linha)}
+  table.mt td{padding:8px 10px;border-bottom:1px solid var(--linha);vertical-align:top}
+  table.mt tr{cursor:pointer}
+  table.mt tr:hover td{background:var(--linha)}
+  table.mt td.vc{font:800 15px Montserrat,Arial,sans-serif;white-space:nowrap}
+  .cad-sec{padding:12px 14px}
+  .cad-sec .desc{color:var(--fraco);font-size:12.5px;margin-bottom:6px}
+
   /* ABAS DO PAINEL */
   .abas{display:flex;gap:4px;padding:14px 20px 0;border-bottom:1px solid var(--borda)}
   .abas button{background:none;border:0;border-bottom:3px solid transparent;padding:8px 16px;font:700 14px Montserrat,Arial,sans-serif;color:var(--fraco);cursor:pointer}
@@ -219,31 +263,45 @@
 </header>
 
 <nav class="abas">
-  <button data-vista="frota" class="ativo">🚌 Frota</button>
+  <button data-vista="operacao" class="ativo">🧭 Operação</button>
+  <button data-vista="frota">🚌 Frota</button>
   <button data-vista="escalas">📋 Escalas <span class="n" id="nTrocas" style="display:none"></span></button>
+  <button data-vista="manutencao">🔧 Manutenção <span class="n" id="nRetidos" style="display:none;background:var(--vermelho)"></span></button>
+  <button data-vista="cadastros" style="margin-left:auto">⚙️ Cadastros <span class="n" id="nCad" style="display:none;background:var(--cinza)"></span></button>
 </nav>
-<div id="vFrota">
+
+<div id="vOperacao">
+  <div class="avisos" id="avisosOp" style="padding-top:12px"></div>
+  <section class="op-kpis" id="opKpis"></section>
+  <div class="op-wrap">
+    <div class="bloco"><h2>Próximas saídas <span id="nSaidas"></span></h2><div id="opSaidas"></div></div>
+    <div class="op-col">
+      <div class="bloco vermelho"><h2>Alertas em aberto <span id="nAlertas"></span></h2><div id="listaAlertas"></div></div>
+      <div class="bloco"><h2>Reserva na garagem <span id="nReserva"></span></h2><div id="opReserva"></div></div>
+    </div>
+  </div>
+</div>
+
+<div id="vFrota" style="display:none">
 <section class="kpis" id="kpis"></section>
 <div class="barra">
   <input id="busca" placeholder="Buscar veículo, placa, linha, operação ou motorista…">
   <span class="sub" id="contagem"></span>
 </div>
-<div class="avisos" id="avisos"></div>
-<section class="infos" id="infos"></section>
-
-<main>
+<div class="filtro-info" id="filtroInfo"></div>
+<main style="grid-template-columns:1fr">
   <section class="grade" id="grade"></section>
-  <aside>
-    <div class="bloco" style="flex:2">
-      <h2>Próximas saídas <span id="nSaidas"></span></h2>
-      <div class="lista" id="saidas"></div>
-    </div>
-    <div class="bloco historico" style="flex:1">
-      <h2>Alertas em aberto <span id="nAlertas"></span></h2>
-      <div class="lista" id="listaAlertas"></div>
-    </div>
-  </aside>
 </main>
+</div>
+
+<div id="vManutencao" style="display:none" class="secao-tab">
+  <div class="bloco"><h2>Retidos pela manutenção <span id="nMtRet"></span></h2><div id="mtRet"></div></div>
+  <div class="bloco"><h2>Inoperantes (marcados pelo tráfego) <span id="nMtInop"></span></h2><div id="mtInop"></div></div>
+</div>
+
+<div id="vCadastros" style="display:none" class="secao-tab">
+  <div class="avisos" id="avisos" style="padding:0 0 12px"></div>
+  <div id="cadLista"></div>
 </div>
 
 <div id="vEscalas" style="display:none">
@@ -318,7 +376,7 @@ const TIPO_ALERTA = {
   COMBUSTIVEL:'Veículo escalado precisa abastecer'
 };
 
-let dados = null, filtro = 'TOTAL', fila = [], alertaAtual = null, ocupado = false, offsetRelogio = 0;
+let dados = null, filtro = 'RODAM', fila = [], alertaAtual = null, ocupado = false, offsetRelogio = 0;
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const hd = (dia, h) => (dia ? dia + ' ' : '') + h;   // "amanhã 04:20"
@@ -365,17 +423,109 @@ function render(){
   const k = dados.kpis;
   $('kpis').innerHTML = KPIS.map(([id,l,c]) =>
     `<div class="kpi ${filtro===id?'ativo':''}" style="--c:${c}" data-k="${id}"><div class="n">${k[id]||0}</div><div class="l">${l}</div></div>`).join('');
-  $('avisos').innerHTML = (dados.avisos||[]).map(a => `<div class="aviso">⚠ ${esc(a)}</div>`).join('');
-  const inf = dados.info || [];
-  $('infos').innerHTML = inf.length ? '<span class="rot">ℹ Informações</span>' + inf.map(i =>
-    `<button class="chip-info" data-info="${esc(i.id)}" title="Clique para ver a lista">${esc(i.titulo)}<span class="qtd">${i.tipo === 'texto' ? '!' : i.itens.length}</span></button>`).join('') : '';
-  renderGrade(); renderSaidas(); renderAlertas();
+  $('filtroInfo').innerHTML = filtro === 'RODAM'
+    ? `Mostrando os carros que podem rodar (sem retidos e inoperantes). <a data-filtro="TOTAL">Ver todos</a>` : (filtro === 'TOTAL' ? `Mostrando a frota toda. <a data-filtro="RODAM">Só os que podem rodar</a>` : `<a data-filtro="RODAM">Limpar filtro</a>`);
+  // avisos: "escala de hoje não importada" vai para a Operação; o resto para Cadastros
+  const av = dados.avisos || [];
+  $('avisosOp').innerHTML = av.filter(a => /Escala de hoje/.test(a)).map(a => `<div class="aviso">⚠ ${esc(a)}</div>`).join('');
+  $('avisos').innerHTML = av.filter(a => !/Escala de hoje/.test(a)).map(a => `<div class="aviso">⚠ ${esc(a)}</div>`).join('');
+  renderGrade(); renderOperacao(); renderAlertas(); renderManutencao(); renderCadastros();
+  const nTr = (dados.escalas || []).filter(e => e.substituido && e.dias >= 0).length;
+  $('nTrocas').style.display = nTr ? '' : 'none'; $('nTrocas').textContent = nTr;
+  $('nRetidos').style.display = k.RETIDO ? '' : 'none'; $('nRetidos').textContent = k.RETIDO;
+  const nCad = av.filter(a => !/Escala de hoje/.test(a)).length + (dados.info || []).length;
+  $('nCad').style.display = nCad ? '' : 'none'; $('nCad').textContent = nCad;
   if (vista === 'escalas') renderEscalas();
-  else { const nTr = (dados.escalas || []).filter(e => e.substituido && e.dias >= 0).length; $('nTrocas').style.display = nTr ? '' : 'none'; $('nTrocas').textContent = nTr; }
+}
+
+/* ---------- aba Operação ---------- */
+const KPIS_OP = [
+  ['DISPONIVEL','Disponíveis','var(--verde)','frota'], ['ESCALADO','Escalados (próx. 2 h)','var(--ambar)','frota'],
+  ['EM_OPERACAO','Em operação','var(--azul)','frota'], ['FORA_SEM_ESCALA','Fora da garagem','var(--ciano)','frota'],
+  ['ALERTAS','Alertas em aberto','var(--vermelho)',''], ['RETIDO','Retidos','var(--vermelho)','manutencao'],
+  ['INOPERANTE','Inoperantes','var(--roxo)','manutencao']
+];
+function renderOperacao(){
+  const k = Object.assign({ ALERTAS: (dados.alertas || []).length }, dados.kpis);
+  const temComb = dados.veiculos.some(v => v.combustivel && v.combustivel.pct != null);
+  const lista = KPIS_OP.concat(temComb ? [['ABASTECER','Precisam abastecer','var(--laranja)','frota']] : []);
+  $('opKpis').style.gridTemplateColumns = `repeat(${lista.length},minmax(0,1fr))`;
+  $('opKpis').innerHTML = lista.map(([id, l, c, ir]) =>
+    `<div class="kpi" style="--c:${c}" data-ir="${ir}" data-kf="${id}"><div class="n">${k[id] || 0}</div><div class="l">${l}</div></div>`).join('');
+
+  // próximas saídas
+  const s = dados.saidas || [];
+  const porVeic = {}; dados.veiculos.forEach(v => porVeic[v.num] = v);
+  $('nSaidas').textContent = s.filter(x => x.falta >= 0).length;
+  $('opSaidas').innerHTML = s.length ? `<table class="tab-op"><thead><tr><th>Horário</th><th>Operação · motorista</th><th>Veículo</th><th>Situação</th><th></th></tr></thead><tbody>${s.map(x => {
+    const [txt, c] = SIT[x.situacao] || [x.situacao, 'var(--cinza)'];
+    const extra = x.situacao === 'FORA' ? ' · ' + dist(x.dist) : '';
+    const prob = x.falta >= 0 && ['FORA', 'RETIDO', 'INOPERANTE'].includes(x.situacao);
+    return `<tr class="${x.falta < 0 ? 'passou' : ''} ${prob ? 'prob' : ''}">
+      <td class="h">${esc(x.h)}<small>${x.dia ? x.dia + ' · ' : ''}${x.falta < 0 ? 'há ' + tempo(-x.falta) : 'em ' + tempo(x.falta)}</small></td>
+      <td class="op">${esc(x.op)}<small>${esc(x.mot)}${x.local ? ' · ' + esc(x.local) : ''}</small></td>
+      <td class="vc" data-v="${esc(x.veic)}">${vtxt(x.veic)}${x.substituido ? `<s>era ${vtxt(x.original)}</s>` : ''}</td>
+      <td><span class="badge" style="--c:${c}">${txt}${extra}</span>${x.abastecer ? ' <span class="badge" style="--c:var(--laranja)">⛽</span>' : ''}</td>
+      <td>${x.falta >= 0 && x.id ? `<button class="btn" data-troca="${esc(x.id)}">Trocar</button>` : ''}</td></tr>`;
+  }).join('')}</tbody></table>` : '<div class="vazio">Nenhuma saída nas próximas horas.</div>';
+  $('opSaidas').querySelectorAll('[data-troca]').forEach(b => b.onclick = ev => { ev.stopPropagation(); abrirTroca(b.dataset.troca); });
+
+  // reserva na garagem: disponíveis (na garagem pelo GPS; sem GPS da garagem, todos os disponíveis), por combustível
+  const temGaragem = dados.veiculos.some(v => v.naGaragem === true);
+  const res = dados.veiculos.filter(v => v.status === 'DISPONIVEL' && (!temGaragem || v.naGaragem === true))
+    .sort((a, b) => ((b.combustivel && b.combustivel.pct != null) ? b.combustivel.pct : -1) - ((a.combustivel && a.combustivel.pct != null) ? a.combustivel.pct : -1) || a.num - b.num);
+  $('nReserva').textContent = res.length + (temGaragem ? ' na garagem' : ' disponíveis');
+  $('opReserva').innerHTML = res.length ? res.map(v => {
+    const c = v.combustivel || {};
+    const pct = c.pct != null ? c.pct : null;
+    const cor = c.precisa ? 'var(--laranja)' : 'var(--verde)';
+    return `<div class="rv" data-v="${esc(v.num)}"><div><b>${vtxt(v.num)}</b><small>${esc(v.servico || '')}${v.poltronas ? ' · ' + esc(v.poltronas) + ' lug.' : ''}${v.foraCadastro ? 'não cadastrado na frota' : ''}</small></div>
+      ${pct != null ? `<div class="fu"><i style="width:${pct}%;background:${cor}"></i></div><span class="pc" style="color:${cor}">${pct}%</span>` : '<div></div><span class="pc sub">—</span>'}
+      <span class="li">${v.proxima ? 'livre até ' + hd(v.proxima.dia, v.proxima.h) : 'livre'}</span></div>`;
+  }).join('') : '<div class="vazio">Nenhum carro livre na garagem agora.</div>';
+}
+
+/* ---------- aba Manutenção ---------- */
+function vencida(ps){
+  const m = String(ps || '').match(/(\d{1,2})\/(\d{1,2})\/(\d{4})/);
+  if (!m || !dados.data) return false;
+  const [d, mm, a] = dados.data.split('/');
+  return new Date(+m[3], +m[2] - 1, +m[1]) < new Date(+a, +mm - 1, +d);
+}
+function renderManutencao(){
+  const ret = dados.veiculos.filter(v => v.status === 'RETIDO')
+    .sort((a, b) => (+(b.retencao && b.retencao.dr) || 0) - (+(a.retencao && a.retencao.dr) || 0));
+  $('nMtRet').textContent = ret.length;
+  $('mtRet').innerHTML = ret.length ? `<table class="mt"><thead><tr><th>Veículo</th><th>Defeito</th><th>Status</th><th>Responsável</th><th>Entrada</th><th>Previsão</th><th>Dias</th><th>Almoxarifado</th><th>Escala</th></tr></thead><tbody>${ret.map(v => {
+    const r = v.retencao || {};
+    const esc1 = (dados.escalas || []).find(x => x.veic === v.num && x.falta >= 0);
+    return `<tr data-v="${esc(v.num)}"><td class="vc">${vtxt(v.num)}</td><td><b>${esc(r.defeito)}</b></td><td>${esc(r.status)}</td><td>${esc(r.resp)}</td>
+      <td>${esc(r.entrada)}</td><td class="${vencida(r.ps) ? 'vencida' : ''}">${esc(r.ps)}${vencida(r.ps) ? ' ⚠' : ''}</td><td><b>${esc(r.dr)}</b></td><td>${esc(r.almox)}</td>
+      <td>${esc1 ? `<span class="badge" style="--c:var(--vermelho)">escalado ${esc(hd(esc1.dia, esc1.h))}</span>` : ''}</td></tr>`;
+  }).join('')}</tbody></table>` : '<div class="vazio">Nenhum veículo retido.</div>';
+
+  const ino = dados.veiculos.filter(v => v.status === 'INOPERANTE');
+  $('nMtInop').textContent = ino.length;
+  $('mtInop').innerHTML = ino.length ? `<table class="mt"><thead><tr><th>Veículo</th><th>Motivo</th><th>Marcado por</th><th>Quando</th><th></th></tr></thead><tbody>${ino.map(v => {
+    const m = v.manual || {};
+    return `<tr data-v="${esc(v.num)}"><td class="vc">${vtxt(v.num)}</td><td><b>${esc(m.motivo)}</b></td><td>${esc(m.operador)}</td><td>${esc(m.quando)}</td><td><span class="sub">clique para liberar</span></td></tr>`;
+  }).join('')}</tbody></table>` : '<div class="vazio">Nenhum veículo marcado como inoperante.</div>';
+}
+
+/* ---------- aba Cadastros ---------- */
+function renderCadastros(){
+  const inf = dados.info || [];
+  $('cadLista').innerHTML = inf.length ? inf.map(i => `<div class="bloco"><h2>${esc(i.titulo)} <span>${i.tipo === 'texto' ? '!' : i.itens.length}</span></h2>
+    <div class="cad-sec"><div class="desc">${esc(i.desc)}</div>
+    ${i.itens.length ? `<div class="lista-info">${i.itens.map(x => i.tipo === 'veiculo'
+      ? `<div class="li" data-v="${esc(x.num)}"><b>${vtxt(x.num)}</b><span class="sub">${esc(x.txt)}</span></div>`
+      : `<div class="li"><b>${esc(x.h || '')}</b><span>${esc(x.txt)}</span></div>`).join('')}</div>` : ''}</div></div>`).join('')
+    : '<div class="vazio">Nenhuma pendência de cadastro. 👍</div>';
 }
 
 function passaFiltro(v){
   if (filtro === 'TOTAL') return true;
+  if (filtro === 'RODAM') return v.status !== 'RETIDO' && v.status !== 'INOPERANTE';
   if (filtro === 'ABASTECER') return v.combustivel && v.combustivel.precisa;
   return v.status === filtro;
 }
@@ -436,27 +586,14 @@ function tempo(min){
   return h + 'h' + (m ? String(m).padStart(2,'0') : '');
 }
 
-function renderSaidas(){
-  const s = dados.saidas || [];
-  $('nSaidas').textContent = s.length;
-  $('saidas').innerHTML = s.length ? s.map(x => {
-    const [txt,c] = SIT[x.situacao] || [x.situacao,'var(--cinza)'];
-    const extra = x.situacao === 'FORA' ? ' · ' + dist(x.dist) : '';
-    return `<div class="saida ${x.falta<0?'passada':''}" data-v="${esc(x.veic)}">
-      <div class="h">${x.h}<small>${x.dia ? x.dia + ' · ' : ''}${x.falta<0?'há '+tempo(-x.falta):'em '+tempo(x.falta)}</small></div>
-      <div style="min-width:0"><div class="op" title="${esc(x.op)}">${esc(x.op)}</div>
-        <div class="vm"><b style="color:var(--texto)">${vtxt(x.veic)}</b>${x.substituido?' <s>'+vtxt(x.original)+'</s>':''} · ${esc(x.mot)}${x.local?' · '+esc(x.local):''}</div></div>
-      <div style="text-align:right"><span class="badge" style="--c:${c}">${txt}${extra}</span>${x.abastecer?'<br><span class="badge" style="--c:var(--laranja);margin-top:3px">⛽ abastecer</span>':''}</div>
-    </div>`;
-  }).join('') : '<div class="vazio">Nenhuma saída nas próximas horas.</div>';
-}
-
 function renderAlertas(){
   const a = dados.alertas || [];
   $('nAlertas').textContent = a.length;
-  $('listaAlertas').innerHTML = a.length ? a.map(x =>
-    `<div class="item"><b>${esc(hd(x.dia, x.h))} · ${vtxt(x.veic)}</b> — ${esc(TIPO_ALERTA[x.tipo]||x.tipo)}<br><span class="sub">${esc(x.op)}</span>${(() => { const v = dados.veiculos.find(y => y.num === String(x.veic)); return v && v.gps && v.gps.lat != null ? ` · <a target="_blank" style="color:var(--marca-verde);font-weight:600" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">mapa</a>` : ''; })()}</div>`).join('')
-    : '<div class="vazio">Nenhum alerta em aberto.</div>';
+  $('listaAlertas').innerHTML = a.length ? a.map(x => {
+    const v = dados.veiculos.find(y => y.num === String(x.veic));
+    const mapa = v && v.gps && v.gps.lat != null ? `<a target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">📍 Mapa</a>` : '';
+    return `<div class="al-op" data-alerta="${esc(x.id)}"><i></i><div><b>${vtxt(x.veic)} · ${esc(hd(x.dia, x.h))}</b> — ${esc(TIPO_ALERTA[x.tipo] || x.tipo)}<small>${esc(x.op)}</small></div>${mapa}</div>`;
+  }).join('') : '<div class="vazio">Nenhum alerta em aberto.</div>';
   // fila do alarme: tudo que está aberto no servidor
   const ids = new Set(a.map(x => x.id));
   fila = a.slice();
@@ -604,10 +741,20 @@ $('btnSom').onclick = ativarSom;
 
 /* ---------- detalhes do veículo ---------- */
 document.addEventListener('click', e => {
+  const kf = e.target.closest('[data-kf]');
+  if (kf) {
+    if (kf.dataset.kf === 'ALERTAS') { const a = (dados.alertas || [])[0]; if (a && !alertaAtual) abrirAlarme(a); return; }
+    if (kf.dataset.ir === 'frota') { filtro = kf.dataset.kf; trocarVista('frota'); render(); return; }
+    if (kf.dataset.ir) { trocarVista(kf.dataset.ir); return; }
+  }
+  const fl = e.target.closest('[data-filtro]');
+  if (fl) { filtro = fl.dataset.filtro; render(); return; }
+  const la = e.target.closest('[data-alerta]');
+  if (la && !e.target.closest('a')) { const a = (dados.alertas || []).find(x => x.id === la.dataset.alerta); if (a && !alertaAtual) abrirAlarme(a); return; }
   const bi = e.target.closest('[data-info]');
   if (bi) { abrirInfo(bi.dataset.info); return; }
   const k = e.target.closest('.kpi');
-  if (k) { filtro = filtro === k.dataset.k ? 'TOTAL' : k.dataset.k; render(); return; }
+  if (k) { filtro = filtro === k.dataset.k ? 'RODAM' : k.dataset.k; render(); return; }
   if (e.target.closest('a')) return;
   const c = e.target.closest('[data-v]');
   if (c && (!e.target.closest('.overlay') || e.target.closest('.lista-info'))) abrirVeiculo(c.dataset.v);
@@ -675,14 +822,16 @@ function abrirInfo(id){
 }
 
 /* ---------- vista Escalas ---------- */
-let vista = 'frota', escDia = 0;
-try { vista = localStorage.getItem('vistaFrota') || 'frota'; } catch (e) {}
+let vista = 'operacao', escDia = 0;
+try { vista = localStorage.getItem('vistaPainel') || 'operacao'; } catch (e) {}
 function trocarVista(v){
   vista = v;
   document.querySelectorAll('.abas button').forEach(b => b.classList.toggle('ativo', b.dataset.vista === v));
-  $('vFrota').style.display = v === 'frota' ? '' : 'none';
-  $('vEscalas').style.display = v === 'escalas' ? '' : 'none';
-  try { localStorage.setItem('vistaFrota', v); } catch (e) {}
+  ['operacao', 'frota', 'escalas', 'manutencao', 'cadastros'].forEach(n => {
+    const el = $('v' + n.charAt(0).toUpperCase() + n.slice(1));
+    if (el) el.style.display = n === v ? '' : 'none';
+  });
+  try { localStorage.setItem('vistaPainel', v); } catch (e) {}
   if (v === 'escalas' && dados) renderEscalas();
 }
 document.querySelectorAll('.abas button').forEach(b => b.onclick = () => trocarVista(b.dataset.vista));
