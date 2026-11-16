@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
 <meta charset="utf-8">
-<title>Painel de Frota — Pirajá</title>
+<title>Painel Operacional — Pirajá</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@500;600;700;800&family=Open+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -32,7 +32,7 @@
   header{display:flex;align-items:center;gap:18px;padding:10px 20px;background:var(--marca-escuro);color:#fff;position:sticky;top:0;z-index:5}
   header::after{content:"";position:absolute;left:0;right:0;bottom:-4px;height:4px;background:var(--marca-amarelo)}
   .marca{display:flex;align-items:center;gap:12px}
-  .marca img{height:42px;width:auto;display:none;border-radius:8px;image-rendering:auto}
+  .marca img{height:42px;width:42px;object-fit:contain;display:none;border-radius:8px;image-rendering:auto}
   .marca svg{width:38px;height:38px;flex:0 0 38px}
   header h1{font-size:18px;margin:0;font-weight:800;letter-spacing:.2px}
   header .sub{color:#B5D0D8}
@@ -189,6 +189,38 @@
   .rv .pc{font:700 12px Montserrat,Arial,sans-serif}
   .rv .li{font-size:12px;color:var(--verde);font-weight:600;text-align:right}
   .avisos:empty,.infos:empty{display:none}
+  /* login */
+  .login{position:fixed;inset:0;z-index:200;background:linear-gradient(160deg,#004557 0%,#00313E 100%);display:none;align-items:center;justify-content:center;padding:20px}
+  .login.aberto{display:flex}
+  .login .cx{width:min(400px,94vw);background:var(--painel);color:var(--texto);border-radius:14px;border-top:6px solid var(--marca-amarelo);padding:26px 26px 20px;box-shadow:0 20px 60px rgba(0,0,0,.35)}
+  .login .topo{display:flex;align-items:center;gap:12px;margin-bottom:14px}
+  .login .topo img{width:44px;height:44px;border-radius:8px;background:#004557;padding:4px}
+  .login h2{font:800 19px Montserrat,Arial,sans-serif;margin:0}
+  .login .abas-l{display:flex;gap:6px;margin:6px 0 10px;border-bottom:1px solid var(--borda)}
+  .login .abas-l button{flex:1;background:none;border:0;border-bottom:3px solid transparent;padding:9px 6px;font:700 13px Montserrat,Arial,sans-serif;color:var(--fraco);cursor:pointer}
+  .login .abas-l button.ativo{color:var(--texto);border-bottom-color:var(--marca-amarelo)}
+  .login .btn.prim{width:100%;padding:11px;font-size:14px;margin-top:6px}
+  .login .msg-ok{background:color-mix(in srgb,var(--verde) 12%,transparent);color:var(--verde);border-radius:8px;padding:10px 12px;font-weight:600;font-size:13px;margin-top:8px}
+  .usuario-chip{display:flex;align-items:center;gap:8px;color:#fff;font-size:13px;font-weight:600}
+  .usuario-chip .btn{padding:5px 10px;font-size:12px}
+  /* alerta roxo: veículo inoperante há 12 h */
+  .alarme.roxo{border-color:var(--roxo);animation:piscaRoxo 1s infinite}
+  .alarme.roxo .faixa{background:var(--roxo)}
+  .alarme .r-inop{display:none}
+  .alarme.roxo .r-inop{display:flex}
+  .alarme.roxo .r-padrao{display:none}
+  @keyframes piscaRoxo{0%,100%{box-shadow:0 0 0 0 rgba(123,79,194,.9)}50%{box-shadow:0 0 70px 20px rgba(123,79,194,.55)}}
+  .flash.roxo{animation:fundoRoxo 1s infinite}
+  @keyframes fundoRoxo{0%,100%{background:rgba(123,79,194,0)}50%{background:rgba(123,79,194,.25)}}
+  .al-op.roxo i{background:var(--roxo)}
+  .al-op.roxo .trat{background:var(--roxo)}
+  /* aba do administrador */
+  table.mt td .acoes-u{display:flex;gap:6px;flex-wrap:wrap}
+  table.acessos tr{cursor:default}
+  body.consulta [data-troca], body.consulta .so-operador{display:none!important}
+  .sel-perfil{background:var(--campo);border:1px solid var(--borda-forte);color:var(--texto);border-radius:6px;padding:6px 8px;font-size:13px}
+  .tag-consulta{background:var(--marca-amarelo);color:#00313E;border-radius:999px;padding:1px 8px;font:700 11px Montserrat,Arial,sans-serif}
+  .st-u{font:700 11px Montserrat,Arial,sans-serif;border-radius:999px;padding:2px 9px;background:color-mix(in srgb,var(--c) 14%,transparent);color:var(--c)}
   .vencida{color:var(--vermelho);font-weight:700}
   .filtro-info{padding:0 20px 8px;font-size:12.5px;color:var(--fraco)}
   .filtro-info a{color:var(--marca-verde);font-weight:700;cursor:pointer}
@@ -257,7 +289,7 @@
       <circle cx="20" cy="20" r="9" fill="#004557"/><circle cx="20" cy="20" r="5.5" fill="#F0DC14"/>
     </svg>
     <div>
-      <h1>Painel de Frota — Pirajá</h1>
+      <h1>Painel Operacional — Pirajá</h1>
       <div class="sub"><span class="slogan">Iluminando caminhos</span> · <span id="data"></span> · <span class="ponto carregando" id="ponto"></span> <span id="atualizado">carregando…</span></div>
     </div>
   </div>
@@ -266,6 +298,7 @@
   <button class="btn som-off" id="btnSom" title="O navegador só toca som depois de um clique na página">🔇 Ativar som</button>
   <button class="btn" id="btnTema" title="Alternar modo claro/escuro">🌙 Modo noite</button>
   <button class="btn" id="btnAtualizar">Atualizar</button>
+  <div class="usuario-chip" id="usuarioChip" style="display:none"><span id="usuarioNome"></span><button class="btn" id="btnSair">Sair</button></div>
 </header>
 
 <nav class="abas">
@@ -273,7 +306,8 @@
   <button data-vista="frota">🚌 Frota</button>
   <button data-vista="escalas">📋 Escalas <span class="n" id="nTrocas" style="display:none"></span></button>
   <button data-vista="manutencao">🔧 Manutenção <span class="n" id="nRetidos" style="display:none;background:var(--vermelho)"></span></button>
-  <button data-vista="cadastros" style="margin-left:auto">⚙️ Cadastros <span class="n" id="nCad" style="display:none;background:var(--cinza)"></span></button>
+  <button data-vista="acessos" id="abaAcessos" style="display:none;margin-left:auto">🔐 Pendentes de aprovação <span class="n" id="nAcessos" style="display:none;background:var(--vermelho)"></span></button>
+  <button data-vista="cadastros" id="abaCadastros" style="margin-left:auto">⚙️ Cadastros <span class="n" id="nCad" style="display:none;background:var(--cinza)"></span></button>
 </nav>
 
 <div id="vOperacao">
@@ -304,6 +338,11 @@
   <div class="bloco"><h2>Inoperantes (marcados pelo tráfego) <span id="nMtInop"></span></h2><div id="mtInop"></div></div>
 </div>
 
+<div id="vAcessos" style="display:none" class="secao-tab">
+  <div class="bloco"><h2>Pendentes de aprovação <span id="nAcPend"></span></h2><div id="acPend"></div></div>
+  <div class="bloco"><h2>Usuários <span id="nAcUs"></span></h2><div id="acUs"></div></div>
+</div>
+
 <div id="vCadastros" style="display:none" class="secao-tab">
   <div class="avisos" id="avisos" style="padding:0 0 12px"></div>
   <div id="cadLista"></div>
@@ -322,6 +361,28 @@
   </div>
 </div>
 
+<div class="login" id="telaLogin">
+  <div class="cx">
+    <div class="topo"><img id="loginLogo" alt=""><div><h2>Painel Operacional — Pirajá</h2><div class="sub">Iluminando caminhos</div></div></div>
+    <div class="abas-l"><button id="lgAbaEntrar" class="ativo">Entrar</button><button id="lgAbaPedir">Solicitar acesso</button></div>
+    <form id="lgEntrar" autocomplete="on">
+      <div class="campo"><span>Usuário ou matrícula</span><input id="lgUsuario" autocomplete="username"></div>
+      <div class="campo"><span>Senha</span><input id="lgSenha" type="password" autocomplete="current-password"></div>
+      <div class="erro-msg" id="lgErro"></div>
+      <button class="btn prim" id="lgBtn" type="submit">Entrar</button>
+    </form>
+    <form id="lgPedir" style="display:none" autocomplete="off">
+      <div class="campo"><span>Nome completo</span><input id="pdNome"></div>
+      <div class="campo"><span>Matrícula</span><input id="pdMat" inputmode="numeric"></div>
+      <div class="campo"><span>Senha (mínimo 4 caracteres)</span><input id="pdSenha" type="password" autocomplete="new-password"></div>
+      <div class="campo"><span>Repita a senha</span><input id="pdSenha2" type="password" autocomplete="new-password"></div>
+      <div class="erro-msg" id="pdErro"></div>
+      <button class="btn prim" id="pdBtn" type="submit">Enviar solicitação</button>
+      <div id="pdOk"></div>
+    </form>
+  </div>
+</div>
+
 <div class="flash" id="flash"></div>
 <div class="overlay" id="ovAlarme">
   <div class="alarme" role="alertdialog" aria-live="assertive">
@@ -331,15 +392,16 @@
     <div class="det" id="alDet"></div>
     <div id="alMapa"></div>
     <fieldset>
-      <label><input type="radio" name="resp" value="CONFIRMADO"> Confirmo o mesmo veículo</label>
-      <label><input type="radio" name="resp" value="ALTERADO"> Sugerir alteração de veículo</label>
+      <label class="r-padrao"><input type="radio" name="resp" value="CONFIRMADO"> Confirmo o mesmo veículo</label>
+      <label class="r-padrao"><input type="radio" name="resp" value="ALTERADO"> Sugerir alteração de veículo</label>
+      <label class="r-inop"><input type="radio" name="resp" value="CONTINUA"> Sim, o veículo continua inoperante</label>
+      <label class="r-inop"><input type="radio" name="resp" value="LIBERADO"> Não, o veículo já pode ser liberado</label>
       <div id="alAlterar" style="display:none">
         <div class="campo"><span>Veículo sugerido</span><input id="alVeic" inputmode="numeric" placeholder="Ex.: 9560"></div>
         <div id="alCheck"></div>
         <div id="alOutras"></div>
       </div>
       <div class="campo"><span id="alObsLbl">Observação (opcional)</span><textarea id="alObs" rows="2"></textarea></div>
-      <div class="campo"><span>Seu nome (obrigatório)</span><input id="alNome" placeholder="Nome de quem está dando a baixa" autocomplete="off"></div>
     </fieldset>
     <div class="erro-msg" id="alErro"></div>
     <div class="acoes"><button class="btn ok" id="alBaixar">Dar baixa no alerta</button><button class="btn depois" id="alDepois">Tratar mais tarde</button><button class="btn depois" id="alDepoisTodos" style="display:none"></button><span class="sub" id="alSomAviso"></span></div>
@@ -378,8 +440,39 @@ const SIT = {
 const TIPO_ALERTA = {
   FORA_DO_LOCAL:'Veículo fora do local de partida', SEM_GPS:'Veículo sem posição de GPS',
   VEICULO_RETIDO:'Veículo retido está escalado', VEICULO_INOPERANTE:'Veículo inoperante está escalado',
-  COMBUSTIVEL:'Veículo escalado precisa abastecer'
+  COMBUSTIVEL:'Veículo escalado precisa abastecer',
+  INOPERANTE_12H:'Veículo inoperante há 12 h: confirmar'
 };
+
+/* ---------- login ---------- */
+let TOKEN = '', USUARIO = null, iniciado = false;
+try { TOKEN = localStorage.getItem('tokenFrota') || ''; USUARIO = JSON.parse(localStorage.getItem('usuarioFrota') || 'null'); } catch (e) {}
+function erroApi(r){
+  const e = new Error((r && r.erro) || 'erro no servidor');
+  if (r && r.sessao === false) { e.sessao = true; sessaoEncerrada(); }
+  return e;
+}
+function guardarSessao(t, u){
+  TOKEN = t; USUARIO = u;
+  try { if (t) { localStorage.setItem('tokenFrota', t); localStorage.setItem('usuarioFrota', JSON.stringify(u)); } else { localStorage.removeItem('tokenFrota'); localStorage.removeItem('usuarioFrota'); } } catch (e) {}
+}
+function ehConsulta(){ return !!(USUARIO && USUARIO.perfil === 'CONSULTA'); }
+function sessaoEncerrada(){ guardarSessao('', null); mostrarLogin(); }
+function mostrarLogin(){
+  $('telaLogin').classList.add('aberto'); $('usuarioChip').style.display = 'none';
+  $('ovAlarme').classList.remove('aberto'); $('flash').classList.remove('on'); if (typeof pararSirene === 'function') pararSirene();
+  alertaAtual = null;
+  setTimeout(() => $('lgUsuario').focus(), 50);
+}
+function mostrarUsuario(){
+  $('telaLogin').classList.remove('aberto');
+  $('usuarioChip').style.display = USUARIO ? '' : 'none';
+  $('usuarioNome').innerHTML = USUARIO ? '👤 ' + esc(USUARIO.nome) + (USUARIO.perfil === 'CONSULTA' ? ' <span class="tag-consulta">Consulta</span>' : '') : '';
+  document.body.classList.toggle('consulta', ehConsulta());
+  const adm = !!(USUARIO && USUARIO.perfil === 'ADMIN');
+  $('abaAcessos').style.display = adm ? '' : 'none';
+  $('abaCadastros').style.marginLeft = adm ? '0' : 'auto';
+}
 
 // alertas deixados para depois (por computador, guardado no navegador)
 let adiados = new Set();
@@ -399,21 +492,22 @@ async function chamar(fn, ...args){
   let r;
   try {
     r = (fn === 'getPainel' || fn === 'estadoAlertas')
-      ? await fetch(API_URL + '?acao=' + (fn === 'getPainel' ? 'dados' : fn) + '&chave=' + encodeURIComponent(CHAVE) + '&t=' + Date.now())
+      ? await fetch(API_URL + '?acao=' + (fn === 'getPainel' ? 'dados' : fn) + '&chave=' + encodeURIComponent(CHAVE) + '&token=' + encodeURIComponent(TOKEN) + '&t=' + Date.now())
       : await fetch(API_URL, { method: 'POST', headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({ acao: fn, chave: CHAVE, args: args }) });
+          body: JSON.stringify({ acao: fn, chave: CHAVE, token: TOKEN, args: args }) });
   } catch (e) { throw new Error('sem conexão com o Google'); }
   let j;
   try { j = await r.json(); } catch (e) { throw new Error('resposta inválida (confira se a implantação está como "Qualquer pessoa")'); }
-  if (!j.ok) throw new Error(j.erro || 'erro no servidor');
+  if (!j.ok) throw erroApi(j);
   return j.dados;
 }
 
 async function carregar(){
-  if (ocupado) return;
+  if (ocupado || (!TOKEN && !window.SIMULADOR)) return;
   ocupado = true; $('ponto').className = 'ponto carregando';
   try {
     dados = await chamar('getPainel');
+    if (dados.usuario) { USUARIO = dados.usuario; try { localStorage.setItem('usuarioFrota', JSON.stringify(USUARIO)); } catch (e) {} mostrarUsuario(); }
     ANT = dados.antigos || {};
     const [h,m,s] = dados.agora.split(':').map(Number);
     const agoraLocal = new Date(); offsetRelogio = (h*3600+m*60+s) - (agoraLocal.getHours()*3600+agoraLocal.getMinutes()*60+agoraLocal.getSeconds());
@@ -441,7 +535,7 @@ function render(){
   $('infosOp').innerHTML = infs.length ? `<span class="rot">Info</span>` + infs.map(i =>
     `<button class="chip-info" data-info="${esc(i.id)}">${esc(i.titulo)}<span class="qtd">${i.tipo === 'texto' ? '!' : i.itens.length}</span></button>`).join('') : '';
   $('avisos').innerHTML = av.filter(a => !/Escala de hoje/.test(a)).map(a => `<div class="aviso">⚠ ${esc(a)}</div>`).join('');
-  renderGrade(); renderOperacao(); renderAlertas(); renderManutencao(); renderCadastros();
+  renderGrade(); renderOperacao(); renderAlertas(); renderManutencao(); renderCadastros(); renderAcessos();
   const nTr = (dados.escalas || []).filter(e => e.substituido && e.dias >= 0).length;
   $('nTrocas').style.display = nTr ? '' : 'none'; $('nTrocas').textContent = nTr;
   $('nRetidos').style.display = k.RETIDO ? '' : 'none'; $('nRetidos').textContent = k.RETIDO;
@@ -522,6 +616,51 @@ function renderManutencao(){
     const m = v.manual || {};
     return `<tr data-v="${esc(v.num)}"><td class="vc">${vtxt(v.num)}</td><td><b>${esc(m.motivo)}</b></td><td>${esc(m.operador)}</td><td>${esc(m.quando)}</td><td><span class="sub">clique para liberar</span></td></tr>`;
   }).join('')}</tbody></table>` : '<div class="vazio">Nenhum veículo marcado como inoperante.</div>';
+}
+
+/* ---------- aba Pendentes de aprovação (administrador) ---------- */
+const ST_USUARIO = { ATIVO: ['Ativo', 'var(--verde)'], PENDENTE: ['Pendente', 'var(--ambar)'], RECUSADO: ['Recusado', 'var(--cinza)'], BLOQUEADO: ['Bloqueado', 'var(--vermelho)'] };
+function renderAcessos(){
+  const lista = dados.acessos;
+  if (!lista) { $('nAcessos').style.display = 'none'; return; }
+  const pend = lista.filter(u => u.status === 'PENDENTE');
+  const escolhidos = {};   // não perde a categoria escolhida quando a tela atualiza
+  document.querySelectorAll('[data-perfil-de]').forEach(x => { if (x.value) escolhidos[x.dataset.perfilDe] = x.value; });
+  $('nAcessos').style.display = pend.length ? '' : 'none'; $('nAcessos').textContent = pend.length;
+  $('nAcPend').textContent = pend.length;
+  $('acPend').innerHTML = pend.length ? `<table class="mt acessos"><thead><tr><th>Nome</th><th>Matrícula</th><th>Solicitado em</th><th>Categoria e decisão</th></tr></thead><tbody>${pend.map(u =>
+    `<tr><td><b>${esc(u.nome)}</b></td><td>${esc(u.matricula)}</td><td>${esc(u.solicitado)}</td>
+      <td><div class="acoes-u"><select class="sel-perfil" data-perfil-de="${esc(u.usuario)}"><option value="">Categoria…</option><option value="OPERADOR">Operador</option><option value="CONSULTA">Consulta</option></select>
+        <button class="btn ok" data-dec="APROVAR" data-u="${esc(u.usuario)}">Aprovar</button><button class="btn" data-dec="RECUSAR" data-u="${esc(u.usuario)}">Recusar</button></div></td></tr>`).join('')}</tbody></table>`
+    : '<div class="vazio">Nenhuma solicitação aguardando aprovação.</div>';
+  document.querySelectorAll('[data-perfil-de]').forEach(x => { if (escolhidos[x.dataset.perfilDe]) x.value = escolhidos[x.dataset.perfilDe]; });
+  const outros = lista.filter(u => u.status !== 'PENDENTE');
+  $('nAcUs').textContent = outros.filter(u => u.status === 'ATIVO').length + ' ativos';
+  $('acUs').innerHTML = `<table class="mt acessos"><thead><tr><th>Nome</th><th>Usuário / matrícula</th><th>Categoria</th><th>Situação</th><th>Liberado por</th><th>Último acesso</th><th></th></tr></thead><tbody>${outros.map(u => {
+    const [t, c] = ST_USUARIO[u.status] || [u.status, 'var(--cinza)'];
+    const eu = USUARIO && u.nome === USUARIO.nome && u.perfil === 'ADMIN';
+    const bt = eu ? '' : u.status === 'ATIVO' ? `<button class="btn" data-dec="BLOQUEAR" data-u="${esc(u.usuario)}">Bloquear</button>` : `<button class="btn" data-dec="REATIVAR" data-u="${esc(u.usuario)}">Liberar</button>`;
+    return `<tr><td><b>${esc(u.nome)}</b></td><td>${esc(u.matricula || u.usuario)}</td><td>${u.perfil === 'ADMIN' ? 'Administrador' : `<select class="sel-perfil" data-muda-perfil="${esc(u.usuario)}">${['OPERADOR', 'CONSULTA'].map(p => `<option value="${p}" ${u.perfil === p ? 'selected' : ''}>${p === 'OPERADOR' ? 'Operador' : 'Consulta'}</option>`).join('')}</select>`}</td>
+      <td><span class="st-u" style="--c:${c}">${t}</span></td><td>${esc(u.decididoPor)}${u.decididoEm ? '<br><span class="sub">' + esc(u.decididoEm) + '</span>' : ''}</td><td>${esc(u.ultimo)}</td><td>${bt}</td></tr>`;
+  }).join('')}</tbody></table>`;
+  document.querySelectorAll('[data-dec]').forEach(b => b.onclick = async () => {
+    const txt = { APROVAR: 'aprovado', RECUSAR: 'recusado', BLOQUEAR: 'bloqueado', REATIVAR: 'liberado' }[b.dataset.dec];
+    let perfil = null;
+    if (b.dataset.dec === 'APROVAR') {
+      const sel = document.querySelector(`[data-perfil-de="${CSS.escape(b.dataset.u)}"]`);
+      perfil = sel && sel.value;
+      if (!perfil) { if (sel) sel.focus(); return toast('Escolha a categoria: Operador ou Consulta.'); }
+    }
+    if (b.dataset.dec === 'BLOQUEAR' && !confirm('Bloquear o acesso de ' + b.dataset.u + '?')) return;
+    b.disabled = true;
+    try { await chamar('decidirUsuario', b.dataset.u, b.dataset.dec, perfil); toast('Usuário ' + txt + (perfil ? ' como ' + (perfil === 'OPERADOR' ? 'Operador' : 'Consulta') : '') + '.'); carregar(); }
+    catch (e) { toast(e.message); b.disabled = false; }
+  });
+  document.querySelectorAll('[data-muda-perfil]').forEach(sel => sel.onchange = async () => {
+    sel.disabled = true;
+    try { await chamar('decidirUsuario', sel.dataset.mudaPerfil, 'PERFIL', sel.value); toast('Categoria alterada para ' + (sel.value === 'OPERADOR' ? 'Operador' : 'Consulta') + '.'); carregar(); }
+    catch (e) { toast(e.message); sel.disabled = false; }
+  });
 }
 
 /* ---------- aba Cadastros ---------- */
@@ -611,8 +750,9 @@ function renderAlertas(){
   let mudou = false;
   [...adiados].forEach(id => { if (!ids.has(id)) { adiados.delete(id); mudou = true; } });   // já baixados
   if (mudou) salvarAdiados();
-  fila = a.filter(x => !adiados.has(x.id));
+  fila = ehConsulta() ? [] : a.filter(x => !adiados.has(x.id));
   renderPendentes();
+  if (ehConsulta()) { if (alertaAtual) fecharAlarme(); return; }
   if (alertaAtual && !ids.has(alertaAtual.id)) fecharAlarme();      // baixado por outro operador
   if (!alertaAtual && fila.length) abrirAlarme(fila[0]);
   else if (alertaAtual) $('alFila').textContent = filaTxt();
@@ -625,14 +765,17 @@ function filaTxt(){
   return fila.length > 1 ? `Alerta ${i+1} de ${fila.length}` : '';
 }
 function renderPendentes(){
-  const p = (dados.alertas || []).filter(x => adiados.has(x.id));
+  const cons = ehConsulta();
+  const p = (dados.alertas || []).filter(x => cons || adiados.has(x.id));
+  $('blocoPend').querySelector('h2').firstChild.textContent = cons ? 'Alertas em aberto ' : 'Alertas pendentes ';
+  $('blocoPend').querySelector('.pend-dica').textContent = cons ? 'Somente visualização: a baixa é feita pelos operadores.' : 'Deixados para tratar mais tarde. Clique em um para dar baixa.';
   $('blocoPend').style.display = p.length ? '' : 'none';
   $('blocoPend').parentNode.classList.toggle('com-pend', p.length > 0);
   $('nPend').textContent = p.length;
   $('listaPend').innerHTML = p.map(x => {
     const v = dados.veiculos.find(y => y.num === String(x.veic));
     const mapa = v && v.gps && v.gps.lat != null ? `<a target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">📍 Mapa</a>` : '';
-    return `<div class="al-op" data-alerta="${esc(x.id)}"><i></i><div><b>${vtxt(x.veic)} · ${esc(hd(x.dia, x.h))}</b><small>${esc(TIPO_ALERTA[x.tipo] || x.tipo)} · ${esc(x.op)}</small></div><div class="lado">${mapa}<span class="trat">Tratar</span></div></div>`;
+    return `<div class="al-op ${x.tipo === 'INOPERANTE_12H' ? 'roxo' : ''}" data-alerta="${esc(x.id)}"><i></i><div><b>${vtxt(x.veic)} · ${esc(hd(x.dia, x.h))}</b><small>${esc(TIPO_ALERTA[x.tipo] || x.tipo)} · ${esc(x.op)}</small></div><div class="lado">${mapa}${cons ? '' : '<span class="trat">Tratar</span>'}</div></div>`;
   }).join('');
 }
 function adiar(lista){
@@ -651,8 +794,11 @@ function abrirAlarme(a){
   $('alDepoisTodos').textContent = `Tratar todos mais tarde (${outrosNaFila + 1})`;
   $('alTipo').textContent = TIPO_ALERTA[a.tipo] || a.tipo;
   $('alFila').textContent = filaTxt();
-  $('alTitulo').innerHTML = `Veículo ${vtxt(a.veic)} · ${esc(hd(a.dia, a.h))}`;
-  $('alDet').innerHTML = `${esc(a.op)}<br>${esc(a.motivo)}${a.local ? '<br>Local: ' + esc(a.local) : ''}`;
+  const roxo = a.tipo === 'INOPERANTE_12H';
+  document.querySelector('#ovAlarme .alarme').classList.toggle('roxo', roxo);
+  $('flash').classList.toggle('roxo', roxo);
+  $('alTitulo').innerHTML = roxo ? `Veículo ${vtxt(a.veic)} · inoperante` : `Veículo ${vtxt(a.veic)} · ${esc(hd(a.dia, a.h))}`;
+  $('alDet').innerHTML = roxo ? esc(a.motivo) : `${esc(a.op)}<br>${esc(a.motivo)}${a.local ? '<br>Local: ' + esc(a.local) : ''}`;
   // link do mapa com a última coordenada conhecida do veículo
   const v = (dados.veiculos || []).find(x => x.num === String(a.veic));
   if (v && v.gps && v.gps.lat != null) {
@@ -677,7 +823,7 @@ function abrirAlarme(a){
   $('alVeic').oninput = conferir;
   document.querySelectorAll('.alOutra').forEach(c => c.onchange = conferir);
   document.querySelectorAll('input[name=resp]').forEach(r => r.checked = false);
-  $('alVeic').value = ''; $('alObs').value = ''; $('alNome').value = ''; $('alErro').textContent = '';
+  $('alVeic').value = ''; $('alObs').value = ''; $('alErro').textContent = '';
   $('alAlterar').style.display = 'none'; $('alObsLbl').textContent = 'Observação (opcional)';
   $('ovAlarme').classList.add('aberto'); $('flash').classList.add('on');
   iniciarSirene();
@@ -702,21 +848,21 @@ document.addEventListener('change', e => {
 
 $('alBaixar').onclick = async () => {
   const r = document.querySelector('input[name=resp]:checked');
-  const op = $('alNome').value.trim();
   const veic = $('alVeic').value.trim(), obs = $('alObs').value.trim();
-  if (!r) return erroAl('Escolha: confirmar o mesmo veículo ou sugerir alteração.');
+  const roxo = alertaAtual && alertaAtual.tipo === 'INOPERANTE_12H';
+  if (!r) return erroAl(roxo ? 'Informe se o veículo continua inoperante.' : 'Escolha: confirmar o mesmo veículo ou sugerir alteração.');
   if (r.value === 'ALTERADO' && !veic) return erroAl('Informe o veículo sugerido.');
   if (r.value === 'ALTERADO' && !obs) return erroAl('Informe o motivo da alteração.');
-  if (op.length < 3) { $('alNome').focus(); return erroAl('Digite o seu nome para dar baixa.'); }
   $('alBaixar').disabled = true;
   try {
     const outras = r.value === 'ALTERADO' ? [...document.querySelectorAll('.alOutra:checked')].map(c => c.value) : [];
-    await chamar('baixarAlerta', alertaAtual.id, r.value, veic, obs, op, outras);
+    await chamar('baixarAlerta', alertaAtual.id, r.value, veic, obs, outras);
     const id = alertaAtual.id;
     if (adiados.delete(id)) salvarAdiados();
     fila = fila.filter(x => x.id !== id);
     if (dados) dados.alertas = dados.alertas.filter(x => x.id !== id);
-    toast(outras.length ? `Alerta baixado e ${outras.length + 1} viagens trocadas.` : 'Alerta baixado.');
+    toast(r.value === 'CONTINUA' ? 'Confirmado: continua inoperante. Novo aviso em 12 h.' : r.value === 'LIBERADO' ? 'Veículo liberado.'
+      : outras.length ? `Alerta baixado e ${outras.length + 1} viagens trocadas.` : 'Alerta baixado.');
     fecharAlarme(); carregar();
   } catch (e) {
     if (/já foi baixado/.test(e.message)) { removerAlertaLocal(alertaAtual.id, e.message); carregar(); }
@@ -736,7 +882,7 @@ function removerAlertaLocal(id, msg){
 }
 async function verificarAlertas(){
   try {
-    if (!dados || ocupado) return;
+    if (!dados || ocupado || (!TOKEN && !window.SIMULADOR)) return;
     const st = await chamar('estadoAlertas');
     const abertos = new Set(st.abertos || []);
     // baixados em outro computador
@@ -794,7 +940,7 @@ document.addEventListener('click', e => {
   const fl = e.target.closest('[data-filtro]');
   if (fl) { filtro = fl.dataset.filtro; render(); return; }
   const la = e.target.closest('[data-alerta]');
-  if (la && !e.target.closest('a')) { const a = (dados.alertas || []).find(x => x.id === la.dataset.alerta); if (a && !alertaAtual) abrirAlarme(a); return; }
+  if (la && !e.target.closest('a')) { const a = (dados.alertas || []).find(x => x.id === la.dataset.alerta); if (a && !alertaAtual && !ehConsulta()) abrirAlarme(a); return; }
   const bi = e.target.closest('[data-info]');
   if (bi) { abrirInfo(bi.dataset.info); return; }
   const k = e.target.closest('.kpi');
@@ -825,21 +971,17 @@ function abrirVeiculo(num){
     <div class="secao">Escalas (ontem, hoje e amanhã)</div>
     <table class="tab">${(v.escalas||[]).length ? v.escalas.map(e => `<tr><td>${hd(e.dia, e.h)}</td><td>${esc(e.op)}<br><span class="sub">${esc(e.mot)}${e.substituido ? ' · substituiu o ' + vtxt(e.original) : ''}</span></td></tr>`).join('') : '<tr><td colspan="2" class="sub">Sem escala de ontem a amanhã</td></tr>'}</table>
 
-    <div class="secao">Ações</div>
+    ${ehConsulta() ? '' : `<div class="secao">Ações</div>
     ${v.status === 'INOPERANTE'
-      ? `<div class="campo"><span>Seu nome (obrigatório)</span><input id="gvNome" autocomplete="off"></div>
-         <div class="acoes"><button class="btn ok" id="gvLiberar">Liberar veículo</button></div>`
+      ? `<div class="acoes"><button class="btn ok" id="gvLiberar">Liberar veículo</button></div>`
       : v.status === 'RETIDO' ? '<div class="sub" style="margin-top:6px">Retido pela manutenção: a liberação acontece na planilha de retenção.</div>'
       : `<div class="campo"><span>Motivo para marcar como inoperante</span><input id="gvMotivo" placeholder="Ex.: pneu, sem motorista, avaria…"></div>
-         <div class="campo"><span>Seu nome (obrigatório)</span><input id="gvNome" autocomplete="off"></div>
-         <div class="acoes"><button class="btn perigo" id="gvInop">Marcar inoperante</button></div>`}
+         <div class="acoes"><button class="btn perigo" id="gvInop">Marcar inoperante</button></div>`}`}
     <div class="erro-msg" id="gvErro"></div>`;
   $('ovVeic').classList.add('aberto');
   $('gvFechar').onclick = () => $('ovVeic').classList.remove('aberto');
   const acao = async (fn, args, msg) => {
-    const op = $('gvNome') ? $('gvNome').value.trim() : '';
-    if (op.length < 3) { if ($('gvNome')) $('gvNome').focus(); return $('gvErro').textContent = 'Digite o seu nome.'; }
-    try { await chamar(fn, ...args, op); toast(msg); $('ovVeic').classList.remove('aberto'); carregar(); }
+    try { await chamar(fn, ...args); toast(msg); $('ovVeic').classList.remove('aberto'); carregar(); }
     catch (e) { $('gvErro').textContent = e.message; }
   };
   if ($('gvLiberar')) $('gvLiberar').onclick = () => acao('liberarVeiculo', [v.num], 'Veículo ' + v.num + ' liberado.');
@@ -869,9 +1011,10 @@ function abrirInfo(id){
 let vista = 'operacao', escDia = 0;
 try { vista = localStorage.getItem('vistaPainel') || 'operacao'; } catch (e) {}
 function trocarVista(v){
+  if (v === 'acessos' && !(USUARIO && USUARIO.perfil === 'ADMIN')) v = 'operacao';
   vista = v;
   document.querySelectorAll('.abas button').forEach(b => b.classList.toggle('ativo', b.dataset.vista === v));
-  ['operacao', 'frota', 'escalas', 'manutencao', 'cadastros'].forEach(n => {
+  ['operacao', 'frota', 'escalas', 'manutencao', 'cadastros', 'acessos'].forEach(n => {
     const el = $('v' + n.charAt(0).toUpperCase() + n.slice(1));
     if (el) el.style.display = n === v ? '' : 'none';
   });
@@ -970,7 +1113,6 @@ function abrirTroca(id){
     <div class="campo"><span>Novo veículo</span><input id="trNovo" list="trLista" inputmode="numeric" placeholder="Digite o número (qualquer um dos dois números de ordem)"><datalist id="trLista">${opcoes}</datalist></div>
     <div id="trCheck"></div>
     <div class="campo"><span>Motivo da troca (obrigatório)</span><input id="trMotivo" placeholder="Ex.: carro retido, avaria, ajuste de escala…"></div>
-    <div class="campo"><span>Seu nome (obrigatório)</span><input id="trNome" autocomplete="off"></div>
     <div class="erro-msg" id="trErro"></div>
     <div class="acoes"><button class="btn prim" id="trOk">Confirmar troca</button>
       ${e.substituido ? `<button class="btn" id="trVolta">Voltar ao original (${esc(e.original)})</button>` : ''}</div>`;
@@ -979,13 +1121,12 @@ function abrirTroca(id){
 
   $('trNovo').oninput = () => { $('trCheck').innerHTML = conferirVeiculo($('trNovo').value, [e]); };
   const salvar = async novo => {
-    const motivo = $('trMotivo').value.trim(), nome = $('trNome').value.trim();
+    const motivo = $('trMotivo').value.trim();
     $('trErro').textContent = '';
     if (!novo) return $('trErro').textContent = 'Informe o novo veículo.';
     if (!motivo) return $('trErro').textContent = 'Informe o motivo da troca.';
-    if (nome.length < 3) return $('trErro').textContent = 'Digite o seu nome.';
     $('trOk').disabled = true;
-    try { await chamar('trocarVeiculoEscala', e.id, novo, motivo, nome); toast('Troca registrada.'); $('ovVeic').classList.remove('aberto'); carregar(); }
+    try { await chamar('trocarVeiculoEscala', e.id, novo, motivo); toast('Troca registrada.'); $('ovVeic').classList.remove('aberto'); carregar(); }
     catch (err) { $('trErro').textContent = err.message; }
     finally { if ($('trOk')) $('trOk').disabled = false; }
   };
@@ -998,7 +1139,7 @@ function toast(m){ const t = $('toast'); t.textContent = m; t.style.display = 'b
 
 /* ---------- marca e tema ---------- */
 // Para usar o logo oficial: cole aqui o endereço da imagem (ex.: botão direito no logo do site > "Copiar endereço da imagem")
-const LOGO_URL = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAADMAAAA2CAYAAABqbKGZAAAAAXNSR0IArs4c6QAAAARnQU1BAACxjwv8YQUAAAAJcEhZcwAADsMAAA7DAcdvqGQAAAhrSURBVGhD7Zl5jF1VHYC/s9zlvXmzdmboTKdT0lIspQkQKDQqLgGUrVYIhhrFKIFgiCGEBAWVqCwxuAUTIwaEiKAkRuICAVGxYhcWQyp0o7ShdKbttJ3XWd685b577znHP6aF9nVh+mYghcz3580599zvnt/5nd89V3DR1Y4PCbL2wgeZaZkTlWmZE5VpmROVaZkTlWmZE5VpmePCObS0NPiWOR1wxhyNrwVSQG+7YuFsR2vW4iuDZHI1r3gvqmYhQApLU5AwpzXmjO4hLj+ryuK5sHUgy1UPdFJKPL6+ZBs3X1VgZ5/Hs2sFa/pmsmUwIF/OUDUCh6i99TGZchklHJ62LO7t597Pj7BgliH0YmQAUZSysb+Lpb+YzViiuekT67njy2OYMpBotGxgoODx2L8FP1/ZS9kEGCtxE3zCKQ0zgePM3jEeuPZ1nvn2W5wzb4RcWAQdE9sqzhMY3+H2v3ApLUk1xfkJoqGMCAbpad/Ft67cy5o7t3LN4j4CmdQOc1SmTMaThqWLdvHUrSMsXbAPP4oQVBAiRltFGGcJq1kQ7zyctAptIRc10xA146cB0gGqTE/rTn6yfCt3XbYThT1krKMxaRkhwFOW68/v5+EbR2kRu2jUFmGgGhsiIyhbST7WrBtq4F+bMkSpwljBup2trNrSzd4opOw0kbFEURUbW0xJUEqbeGJtE3aCa2fSaybQli+e08/PvjaKToYQLkVJgcNiUs2bwy08ua6dP672eGtkBlGqSIzAOdASQs/QFpZYtiTlwtP2seTkPE1hwraBDpb/qpNN+TakdJy/oMxLmz2KSYA9EKc1TEpGS8v8GQWevG0L7WGCcBa0JcZSjTOs2tDNNx7rZKTikdpjB4HAkfEtF53az4+ugcvuybG9OAOpHJ85pZ9f3jzMb//ezl1/6SJKVW13mKxMT1ORp27ZxuyuYUIjsUCiYgppju893svvV3eQuCMPfDQEDk9UiV2IFpbrP5bn7uVDyGCQkSTHFXf28tqetiPOzrFf1zGQwnL1klE6G4dQQiMRIFOKZPjhE608tvqk4xYBcAhiFyIEXLIoz61XDiPJE1eLNKgqP722SEtYre0Gk5Fp9FOWnRuRacggncaZmFKU8siz3Tyyci7mCG/ueHAO3tqj0D4EGYsUAtKEBV07uPjMCuII1ULdMhfP38vC7hgnQVgPJbKMxfP49XOtRMnxz8iR2DLUyh+e1xgj8FQDvnQ0BWU+OWcAX0+RjBKG6y5QBKoILsFaSZRmuON3HgPFxtrmdROlksdfaGQ0zuB0iFIxiohPnxbRqA8Ptbpk2oMKs9qq4xugjUldys44ZOX2dmIzufCq5fXBNlas1xQqRayLcdbQ1pRyesdgbdP6ZLpaDFoWcDZFOgvOsH2fz1h1asLrYKqx5K8rmzipIUClOaxpR2vBpefo2qZ1ynRKwmyCMQbhQDrD4LAjSeu63TExTrB2Zyf/fLWD5zc0smJjCy9uacPXMxDi0Cioa5/50scHufcLm8jpFOUkxvg8tKab7zzRS/QeCCkJgTLwdgYTGCuomkPHqmtkh0UIgxAO4QTSapSd2rVyMBJLoFMCbQi0wVcpWpjaZvXJDI5InAwBhwSkU8zMOaQ47kl+VwSOea3DvHDPJl6+eyOv3LWR/96xne9eUjgszOqS2b3Pw7lGpJAIBFIaOpvG8FVa23TSKOlYfHKe7uaE9myB9uwondkKw2MVXM1XW10y/XmPUiWDFAolwJNVPjInoa1hosX6xGnwDddeCHE1QUmNVArjhTy/eYqyWSEO2bLDYSxI4RAqpbPZ44rT9xJ4E/uQmiiLOgucPcsS+Ar2h/GuPRFvDLfVNq1PxgrFfU97GJkDBAiBqRb55pVV5ncUj1g31UPGMyxfUgBRRFRLOFemkiQ8tzlLKZmimQF4aUcPr2xvxCqFcxrpHF64ixsu2kHWPzzT1MN5PXu45KMRkU7BCVIb4fw2/rahhbgmLTMZmVIkeeQ/TZRVDqckzkk8kbLsvDFu/9xufGmoSTYT5u1+Kks1lRjnEYkGdGYmq19tYs3W5poe4yjmLfp+7cWJIejPaxbPk8xtrWBFAZyHR8Ci2YZQJryyLSBxh4fDsVDC0h6WKBufvuGA/G7BZfMLhEFMvtjAV+/vZmAsMx7eNdQ9MwCFasiND7axY2gGxgTgUrTdR7PawS2XbuPJ2/rpaS4S6HdPCkpaZoQVbv/sm/zvvgrn9fSjpONPG9q4/L7ZjBVyPPpcC9tHc0c9HKyrnDkYX1kuOLXIQ9ftIAjzCG2RDrRwRPgUig2sWJ/j6bU+L7/Zykg1xNjxFKEEBDJl4cwxlp4tuGDBXub3jCEo0bdbc9Ojc1nV141zcEZXkfUDWapGHfW0ZtIy7D/YWHb6Hu5ePkhz0yiZUKIswHg9laQOi8Z6LazfWKFvr8RaR1d7hgVdguacI1AxgjKOMtLF+ITk03a+cn8X/3ij46izcTBTIgPjZwJndY7wmxt2MfukYdAaKVIEDmctdv9urZSHFhLnHKlJEVbgnEBY9p8AGJQDmfhUMm3c/ngrD6zqxExgRUwiARyKQzBQyvDMq1m09lk4z0FaIk0SpJIoJRDCYV2MtRHWxUCKIEaQIoQDp5AixNHICzs7ueHhZv78WseERJjKmTmAFA6tHCc3DfGDq4dYcmqZRr+ErwFnsS4F+07QjB9QOZzTFKuN9O1t5sdPZXj6jVnEBuz+9TURplzmAFI4sr6lsynilBkR5/YM8KnTqvR2lxFqfFN1DorlgBfXhax4vZXNo+1sz/uUE4/0OCQO8J7JHIwU4z+cQg+ac46GUKAERAmMlBylCiRWYu3kfje9LzLvFxNbWR8QpmVOVKZlTlQ+VDL/Bx9nk/FCDsOeAAAAAElFTkSuQmCC';
+const LOGO_URL = 'data:image/png;base64,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';
 if (LOGO_URL) { const im = $('logo'); im.onload = () => { im.style.display = 'block'; $('logoSol').style.display = 'none'; }; im.src = LOGO_URL; }
 function aplicarTema(t){
   document.documentElement.dataset.tema = t;
@@ -1016,10 +1157,47 @@ setInterval(() => {
   const d = new Date(Date.now() + offsetRelogio*1000);
   $('relogio').textContent = d.toTimeString().slice(0,8);
 }, 1000);
-trocarVista(vista);
-carregar();
-setTimeout(verificarAlertas, 5000);
-setInterval(carregar, INTERVALO * 1000);
+if (LOGO_URL) $('loginLogo').src = LOGO_URL;
+function iniciar(){
+  mostrarUsuario();
+  if (iniciado) { carregar(); return; }
+  iniciado = true;
+  trocarVista(vista);
+  carregar();
+  setTimeout(verificarAlertas, 5000);
+  setInterval(carregar, INTERVALO * 1000);
+}
+$('lgAbaEntrar').onclick = () => { $('lgAbaEntrar').classList.add('ativo'); $('lgAbaPedir').classList.remove('ativo'); $('lgEntrar').style.display = ''; $('lgPedir').style.display = 'none'; };
+$('lgAbaPedir').onclick = () => { $('lgAbaPedir').classList.add('ativo'); $('lgAbaEntrar').classList.remove('ativo'); $('lgPedir').style.display = ''; $('lgEntrar').style.display = 'none'; $('pdNome').focus(); };
+$('lgEntrar').onsubmit = async ev => {
+  ev.preventDefault();
+  $('lgErro').textContent = ''; $('lgBtn').disabled = true;
+  try {
+    const r = await chamar('entrar', $('lgUsuario').value.trim(), $('lgSenha').value);
+    guardarSessao(r.token, { nome: r.nome, perfil: r.perfil });
+    $('lgSenha').value = '';
+    iniciar();
+  } catch (e) { $('lgErro').textContent = e.message; }
+  finally { $('lgBtn').disabled = false; }
+};
+$('lgPedir').onsubmit = async ev => {
+  ev.preventDefault();
+  $('pdErro').textContent = ''; $('pdOk').innerHTML = '';
+  if ($('pdSenha').value !== $('pdSenha2').value) return $('pdErro').textContent = 'As senhas não conferem.';
+  $('pdBtn').disabled = true;
+  try {
+    await chamar('solicitarAcesso', $('pdNome').value.trim(), $('pdMat').value.trim(), $('pdSenha').value);
+    $('pdOk').innerHTML = '<div class="msg-ok">Solicitação enviada. Aguarde a aprovação do administrador e depois entre com a sua matrícula e senha.</div>';
+    ['pdNome', 'pdMat', 'pdSenha', 'pdSenha2'].forEach(i => $(i).value = '');
+  } catch (e) { $('pdErro').textContent = e.message; }
+  finally { $('pdBtn').disabled = false; }
+};
+$('btnSair').onclick = async () => {
+  if (!confirm('Sair do painel neste computador?')) return;
+  try { await chamar('sair'); } catch (e) {}
+  sessaoEncerrada();
+};
+if (TOKEN || window.SIMULADOR) iniciar(); else mostrarLogin();
 </script>
 </body>
 </html>
