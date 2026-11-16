@@ -182,7 +182,7 @@
   .rv .fu{height:7px;background:var(--linha);border-radius:4px;overflow:hidden}.rv .fu i{display:block;height:100%}
   .rv .pc{font:700 12px Montserrat,Arial,sans-serif}
   .rv .li{font-size:12px;color:var(--verde);font-weight:600;text-align:right}
-  .avisos:empty{display:none}
+  .avisos:empty,.infos:empty{display:none}
   .vencida{color:var(--vermelho);font-weight:700}
   .filtro-info{padding:0 20px 8px;font-size:12.5px;color:var(--fraco)}
   .filtro-info a{color:var(--marca-verde);font-weight:700;cursor:pointer}
@@ -272,6 +272,7 @@
 
 <div id="vOperacao">
   <div class="avisos" id="avisosOp" style="padding-top:12px"></div>
+  <div class="infos" id="infosOp"></div>
   <section class="op-kpis" id="opKpis"></section>
   <div class="op-wrap">
     <div class="bloco"><h2>Próximas saídas <span id="nSaidas"></span></h2><div id="opSaidas"></div></div>
@@ -423,7 +424,10 @@ function render(){
     ? `Mostrando os carros que podem rodar (sem retidos e inoperantes). <a data-filtro="TOTAL">Ver todos</a>` : (filtro === 'TOTAL' ? `Mostrando a frota toda. <a data-filtro="RODAM">Só os que podem rodar</a>` : `<a data-filtro="RODAM">Limpar filtro</a>`);
   // avisos: "escala de hoje não importada" vai para a Operação; o resto para Cadastros
   const av = dados.avisos || [];
-  $('avisosOp').innerHTML = av.filter(a => /Escala de hoje/.test(a)).map(a => `<div class="aviso">⚠ ${esc(a)}</div>`).join('');
+  $('avisosOp').innerHTML = av.map(a => `<div class="aviso">⚠ ${esc(a)}</div>`).join('');
+  const infs = (dados.info || []).filter(i => i.tipo === 'texto' || i.itens.length);
+  $('infosOp').innerHTML = infs.length ? `<span class="rot">Info</span>` + infs.map(i =>
+    `<button class="chip-info" data-info="${esc(i.id)}">${esc(i.titulo)}<span class="qtd">${i.tipo === 'texto' ? '!' : i.itens.length}</span></button>`).join('') : '';
   $('avisos').innerHTML = av.filter(a => !/Escala de hoje/.test(a)).map(a => `<div class="aviso">⚠ ${esc(a)}</div>`).join('');
   renderGrade(); renderOperacao(); renderAlertas(); renderManutencao(); renderCadastros();
   const nTr = (dados.escalas || []).filter(e => e.substituido && e.dias >= 0).length;
