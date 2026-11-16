@@ -170,6 +170,12 @@
   .tab-op tr.prob td{background:color-mix(in srgb,var(--vermelho) 8%,transparent)}
   .tab-op .btn{padding:4px 10px;font-size:12px}
   .bloco.vermelho h2{background:var(--vermelho)}
+  .op-wrap.com-pend{grid-template-columns:minmax(0,1fr) 400px}
+  .pend-dica{padding:8px 14px;font-size:12px;color:var(--fraco);border-bottom:1px solid var(--linha)}
+  .al-op .trat{background:var(--vermelho);color:#fff;border-radius:6px;padding:5px 10px;font:700 12px Montserrat,Arial,sans-serif;white-space:nowrap}
+  .al-op .lado{display:flex;gap:6px;align-items:center}
+  .alarme .acoes{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+  .btn.depois{background:transparent;border-color:var(--borda-forte);color:var(--texto);font-weight:700}
   .al-op{display:grid;grid-template-columns:4px 1fr auto;gap:12px;align-items:center;padding:11px 14px;border-bottom:1px solid var(--linha);cursor:pointer}
   .al-op i{align-self:stretch;background:var(--vermelho);border-radius:2px}
   .al-op b{font:800 15px Montserrat,Arial,sans-serif}
@@ -276,6 +282,8 @@
   <section class="op-kpis" id="opKpis"></section>
   <div class="op-wrap">
     <div class="bloco"><h2>Próximas saídas <span id="nSaidas"></span></h2><div id="opSaidas"></div></div>
+    <div class="bloco vermelho" id="blocoPend" style="display:none"><h2>Alertas pendentes <span id="nPend"></span></h2>
+      <div class="pend-dica">Deixados para tratar mais tarde. Clique em um para dar baixa.</div><div id="listaPend"></div></div>
   </div>
 </div>
 
@@ -334,7 +342,7 @@
       <div class="campo"><span>Seu nome (obrigatório)</span><input id="alNome" placeholder="Nome de quem está dando a baixa" autocomplete="off"></div>
     </fieldset>
     <div class="erro-msg" id="alErro"></div>
-    <div class="acoes"><button class="btn ok" id="alBaixar">Dar baixa no alerta</button><span class="sub" id="alSomAviso"></span></div>
+    <div class="acoes"><button class="btn ok" id="alBaixar">Dar baixa no alerta</button><button class="btn depois" id="alDepois">Tratar mais tarde</button><button class="btn depois" id="alDepoisTodos" style="display:none"></button><span class="sub" id="alSomAviso"></span></div>
     </div>
   </div>
 </div>
@@ -373,6 +381,10 @@ const TIPO_ALERTA = {
   COMBUSTIVEL:'Veículo escalado precisa abastecer'
 };
 
+// alertas deixados para depois (por computador, guardado no navegador)
+let adiados = new Set();
+try { adiados = new Set(JSON.parse(localStorage.getItem('alertasAdiados') || '[]')); } catch (e) {}
+function salvarAdiados(){ try { localStorage.setItem('alertasAdiados', JSON.stringify([...adiados])); } catch (e) {} }
 let dados = null, filtro = 'RODAM', fila = [], alertaAtual = null, ocupado = false, offsetRelogio = 0;
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -594,19 +606,49 @@ function renderAlertas(){
     const mapa = v && v.gps && v.gps.lat != null ? `<a target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">📍 Mapa</a>` : '';
     return `<div class="al-op" data-alerta="${esc(x.id)}"><i></i><div><b>${vtxt(x.veic)} · ${esc(hd(x.dia, x.h))}</b> — ${esc(TIPO_ALERTA[x.tipo] || x.tipo)}<small>${esc(x.op)}</small></div>${mapa}</div>`;
   }).join('') : '<div class="vazio">Nenhum alerta em aberto.</div>';
-  // fila do alarme: tudo que está aberto no servidor
+  // fila do alarme: tudo que está aberto no servidor, menos o que ficou para mais tarde
   const ids = new Set(a.map(x => x.id));
-  fila = a.slice();
+  let mudou = false;
+  [...adiados].forEach(id => { if (!ids.has(id)) { adiados.delete(id); mudou = true; } });   // já baixados
+  if (mudou) salvarAdiados();
+  fila = a.filter(x => !adiados.has(x.id));
+  renderPendentes();
   if (alertaAtual && !ids.has(alertaAtual.id)) fecharAlarme();      // baixado por outro operador
   if (!alertaAtual && fila.length) abrirAlarme(fila[0]);
   else if (alertaAtual) $('alFila').textContent = filaTxt();
 }
 
 /* ---------- alarme ---------- */
-function filaTxt(){ const i = fila.findIndex(x => alertaAtual && x.id === alertaAtual.id); return fila.length > 1 ? `Alerta ${i+1} de ${fila.length}` : ''; }
+function filaTxt(){
+  if (alertaAtual && adiados.has(alertaAtual.id)) return 'Alerta pendente';
+  const i = fila.findIndex(x => alertaAtual && x.id === alertaAtual.id);
+  return fila.length > 1 ? `Alerta ${i+1} de ${fila.length}` : '';
+}
+function renderPendentes(){
+  const p = (dados.alertas || []).filter(x => adiados.has(x.id));
+  $('blocoPend').style.display = p.length ? '' : 'none';
+  $('blocoPend').parentNode.classList.toggle('com-pend', p.length > 0);
+  $('nPend').textContent = p.length;
+  $('listaPend').innerHTML = p.map(x => {
+    const v = dados.veiculos.find(y => y.num === String(x.veic));
+    const mapa = v && v.gps && v.gps.lat != null ? `<a target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">📍 Mapa</a>` : '';
+    return `<div class="al-op" data-alerta="${esc(x.id)}"><i></i><div><b>${vtxt(x.veic)} · ${esc(hd(x.dia, x.h))}</b><small>${esc(TIPO_ALERTA[x.tipo] || x.tipo)} · ${esc(x.op)}</small></div><div class="lado">${mapa}<span class="trat">Tratar</span></div></div>`;
+  }).join('');
+}
+function adiar(lista){
+  lista.forEach(id => adiados.add(id)); salvarAdiados();
+  fila = fila.filter(x => !adiados.has(x.id));
+  renderPendentes(); fecharAlarme();
+}
+$('alDepois').onclick = () => { if (alertaAtual) adiar([alertaAtual.id]); };
+$('alDepoisTodos').onclick = () => adiar(fila.map(x => x.id).concat(alertaAtual ? [alertaAtual.id] : []));
 
 function abrirAlarme(a){
   alertaAtual = a;
+  const pend = adiados.has(a.id), outrosNaFila = fila.filter(x => x.id !== a.id).length;
+  $('alDepois').textContent = pend ? 'Voltar para pendentes' : 'Tratar mais tarde';
+  $('alDepoisTodos').style.display = !pend && outrosNaFila ? '' : 'none';
+  $('alDepoisTodos').textContent = `Tratar todos mais tarde (${outrosNaFila + 1})`;
   $('alTipo').textContent = TIPO_ALERTA[a.tipo] || a.tipo;
   $('alFila').textContent = filaTxt();
   $('alTitulo').innerHTML = `Veículo ${vtxt(a.veic)} · ${esc(hd(a.dia, a.h))}`;
@@ -645,7 +687,7 @@ function fecharAlarme(){
   alertaAtual = null;
   $('ovAlarme').classList.remove('aberto'); $('flash').classList.remove('on');
   pararSirene();
-  const prox = fila.find(x => true);
+  const prox = fila.find(x => !adiados.has(x.id));
   if (prox) abrirAlarme(prox);
 }
 
@@ -671,6 +713,7 @@ $('alBaixar').onclick = async () => {
     const outras = r.value === 'ALTERADO' ? [...document.querySelectorAll('.alOutra:checked')].map(c => c.value) : [];
     await chamar('baixarAlerta', alertaAtual.id, r.value, veic, obs, op, outras);
     const id = alertaAtual.id;
+    if (adiados.delete(id)) salvarAdiados();
     fila = fila.filter(x => x.id !== id);
     if (dados) dados.alertas = dados.alertas.filter(x => x.id !== id);
     toast(outras.length ? `Alerta baixado e ${outras.length + 1} viagens trocadas.` : 'Alerta baixado.');
@@ -687,6 +730,7 @@ function erroAl(m){ $('alErro').textContent = m; }
 function removerAlertaLocal(id, msg){
   fila = fila.filter(x => x.id !== id);
   if (dados) dados.alertas = (dados.alertas || []).filter(x => x.id !== id);
+  if (adiados.delete(id)) salvarAdiados();
   if (alertaAtual && alertaAtual.id === id) { fecharAlarme(); if (msg) toast(msg); }
   if (dados) renderAlertas();
 }
