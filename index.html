@@ -296,6 +296,7 @@
   <div class="relogio" id="relogio">--:--:--</div>
   <div class="esp"></div>
   <button class="btn som-off" id="btnSom" title="O navegador só toca som depois de um clique na página">🔇 Ativar som</button>
+  <button class="btn" id="btnTela" title="Tela cheia (ideal para a TV)">⛶ Tela cheia</button>
   <button class="btn" id="btnTema" title="Alternar modo claro/escuro">🌙 Modo noite</button>
   <button class="btn" id="btnAtualizar">Atualizar</button>
   <div class="usuario-chip" id="usuarioChip" style="display:none"><span id="usuarioNome"></span><button class="btn" id="btnSair">Sair</button></div>
@@ -475,9 +476,9 @@ function mostrarUsuario(){
 }
 
 // alertas deixados para depois (por computador, guardado no navegador)
+// "tratar mais tarde" fica gravado no Google e vale para todas as telas (TV inclusive)
 let adiados = new Set();
-try { adiados = new Set(JSON.parse(localStorage.getItem('alertasAdiados') || '[]')); } catch (e) {}
-function salvarAdiados(){ try { localStorage.setItem('alertasAdiados', JSON.stringify([...adiados])); } catch (e) {} }
+function salvarAdiados(){}
 let dados = null, filtro = 'RODAM', fila = [], alertaAtual = null, ocupado = false, offsetRelogio = 0;
 const $ = id => document.getElementById(id);
 const esc = s => String(s == null ? '' : s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -747,9 +748,8 @@ function renderAlertas(){
   }).join('') : '<div class="vazio">Nenhum alerta em aberto.</div>';
   // fila do alarme: tudo que está aberto no servidor, menos o que ficou para mais tarde
   const ids = new Set(a.map(x => x.id));
-  let mudou = false;
-  [...adiados].forEach(id => { if (!ids.has(id)) { adiados.delete(id); mudou = true; } });   // já baixados
-  if (mudou) salvarAdiados();
+  a.forEach(x => { if (x.adiado) adiados.add(x.id); });
+  [...adiados].forEach(id => { if (!ids.has(id)) adiados.delete(id); });   // já baixados
   fila = ehConsulta() ? [] : a.filter(x => !adiados.has(x.id));
   renderPendentes();
   if (ehConsulta()) { if (alertaAtual) fecharAlarme(); return; }
@@ -779,9 +779,15 @@ function renderPendentes(){
   }).join('');
 }
 function adiar(lista){
-  lista.forEach(id => adiados.add(id)); salvarAdiados();
+  const novos = lista.filter(id => !adiados.has(id));
+  lista.forEach(id => adiados.add(id));
   fila = fila.filter(x => !adiados.has(x.id));
   renderPendentes(); fecharAlarme();
+  chamar('adiarAlertas', lista).catch(e => {
+    novos.forEach(id => adiados.delete(id));
+    toast('Não consegui deixar para mais tarde: ' + e.message);
+    if (dados) renderAlertas();
+  });
 }
 $('alDepois').onclick = () => { if (alertaAtual) adiar([alertaAtual.id]); };
 $('alDepoisTodos').onclick = () => adiar(fila.map(x => x.id).concat(alertaAtual ? [alertaAtual.id] : []));
@@ -888,6 +894,16 @@ async function verificarAlertas(){
     // baixados em outro computador
     (dados.alertas || []).filter(a => !abertos.has(a.id)).forEach(a =>
       removerAlertaLocal(a.id, 'Alerta ' + a.veic + ' (' + a.h + ') baixado por ' + ((st.baixas || {})[a.id] || 'outro operador') + '.'));
+    // deixados para mais tarde em outro computador: saem do pop-up desta tela também
+    let mudouAd = false;
+    (st.adiados || []).forEach(id => {
+      const a = (dados.alertas || []).find(x => x.id === id);
+      if (!a || adiados.has(id)) return;
+      adiados.add(id); a.adiado = true; mudouAd = true;
+      fila = fila.filter(x => x.id !== id);
+      if (alertaAtual && alertaAtual.id === id) { fecharAlarme(); toast('Alerta ' + a.veic + ' deixado para mais tarde em outro computador.'); }
+    });
+    if (mudouAd) renderPendentes();
     // alerta novo que esta tela ainda não tem: atualiza na hora
     const conhecidos = new Set((dados.alertas || []).map(a => a.id));
     if ([...abertos].some(id => !conhecidos.has(id))) carregar();
@@ -1148,6 +1164,27 @@ function aplicarTema(t){
 }
 let temaSalvo = 'claro'; try { temaSalvo = localStorage.getItem('temaFrota') || 'claro'; } catch (e) {}
 aplicarTema(temaSalvo);
+/* ---------- tela cheia (TV) ---------- */
+const docEl = document.documentElement;
+const pedirTela = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.webkitRequestFullScreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+const sairTela = document.exitFullscreen || document.webkitExitFullscreen || document.webkitCancelFullScreen || document.mozCancelFullScreen || document.msExitFullscreen;
+const emTelaCheia = () => !!(document.fullscreenElement || document.webkitFullscreenElement || document.mozFullScreenElement || document.msFullscreenElement);
+let travaTela = null;
+async function manterLigada(){   // evita que a TV/PC apague a tela ou entre em descanso
+  try { if ('wakeLock' in navigator && !travaTela) { travaTela = await navigator.wakeLock.request('screen'); travaTela.addEventListener('release', () => { travaTela = null; }); } } catch (e) {}
+}
+function atualizarBtnTela(){ $('btnTela').textContent = emTelaCheia() ? '✕ Sair da tela cheia' : '⛶ Tela cheia'; }
+if (!pedirTela) $('btnTela').style.display = 'none';
+$('btnTela').onclick = () => {
+  ativarSom();                       // o clique também libera o som do alarme
+  try {
+    if (emTelaCheia()) sairTela.call(document);
+    else { const r = pedirTela.call(docEl); if (r && r.catch) r.catch(() => toast('Este navegador não permitiu a tela cheia.')); manterLigada(); }
+  } catch (e) { toast('Este navegador não permitiu a tela cheia.'); }
+};
+['fullscreenchange', 'webkitfullscreenchange', 'mozfullscreenchange', 'MSFullscreenChange'].forEach(ev => document.addEventListener(ev, atualizarBtnTela));
+document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible' && emTelaCheia()) manterLigada(); });
+
 $('btnTema').onclick = () => aplicarTema(document.documentElement.dataset.tema === 'escuro' ? 'claro' : 'escuro');
 
 /* ---------- início ---------- */
