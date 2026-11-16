@@ -131,6 +131,8 @@
   .alarme label{display:flex;gap:8px;align-items:center;margin:6px 0;cursor:pointer;font-weight:600}
   .alarme input[type=radio]{accent-color:var(--marca-verde);width:18px;height:18px}
   .alarme .acoes{padding:0}
+  .gps-com{display:block;line-height:1.5;margin:6px 0 8px;padding:8px 12px;border-radius:8px;font-size:14px;background:color-mix(in srgb,var(--c) 12%,transparent);border-left:4px solid var(--c);color:var(--texto)}
+  .gps-com b{font:800 16px Montserrat,Arial,sans-serif;color:var(--c)}
   .alarme .mapa-link{display:inline-flex;align-items:center;gap:6px;margin:2px 0 4px;padding:7px 12px;border-radius:8px;background:var(--marca-escuro);color:#fff;text-decoration:none;font:700 13px Montserrat,Arial,sans-serif}
   .alarme .mapa-link:hover{background:var(--marca-verde)}
   .outras{border:1px dashed var(--borda-forte);border-radius:8px;padding:8px 10px;margin-top:8px;max-height:170px;overflow:auto}
@@ -807,12 +809,20 @@ function abrirAlarme(a){
   $('alDet').innerHTML = roxo ? esc(a.motivo) : `${esc(a.op)}<br>${esc(a.motivo)}${a.local ? '<br>Local: ' + esc(a.local) : ''}`;
   // link do mapa com a última coordenada conhecida do veículo
   const v = (dados.veiculos || []).find(x => x.num === String(a.veic));
+  // última comunicação do GPS em destaque: verde até 15 min, amarelo até 1 h, vermelho acima disso
+  let com = '';
+  if (v && v.gps && v.gps.quando) {
+    const idade = v.gps.idadeMin;
+    const c = idade == null ? 'var(--cinza)' : idade <= 15 ? 'var(--verde)' : idade <= 60 ? 'var(--ambar)' : 'var(--vermelho)';
+    const ha = idade == null ? '' : idade < 1 ? 'agora' : 'há ' + tempo(idade);
+    com = `<div class="gps-com" style="--c:${c}">📡 Última comunicação do GPS: <b>${esc(v.gps.quando)}</b>${ha ? ' · ' + ha : ''}${idade != null && idade > 60 ? ' · a posição pode estar desatualizada' : ''}</div>`;
+  } else com = `<div class="gps-com" style="--c:var(--cinza)">📡 Sem comunicação do GPS (veículo fora da VF_frota)</div>`;
   if (v && v.gps && v.gps.lat != null) {
     const onde = v.naGaragem ? 'na garagem' : v.localAtual || v.cidade || (v.distGaragem != null ? 'a ' + dist(v.distGaragem) + ' da garagem' : '');
-    $('alMapa').innerHTML = `<a class="mapa-link" target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">📍 Ver o veículo no Google Maps</a>
+ $('alMapa').innerHTML = com + `<a class="mapa-link" target="_blank" href="https://www.google.com/maps?q=${v.gps.lat},${v.gps.lng}">📍 Ver o veículo no Google Maps</a>
       <div class="sub">Última posição: ${esc(v.gps.quando)}${onde ? ' · ' + esc(onde) : ''}${v.gps.ok ? '' : ' · <b style="color:var(--vermelho)">posição antiga</b>'}</div>`;
   } else {
-    $('alMapa').innerHTML = `<div class="sub">📍 ${v && v.gps ? 'Posição inválida na VF_frota' : 'Veículo sem coordenada na VF_frota'}</div>`;
+    $('alMapa').innerHTML = com + `<div class="sub">📍 ${v && v.gps ? 'Posição inválida na VF_frota' : 'Veículo sem coordenada na VF_frota'}</div>`;
   }
   // outras viagens do mesmo veículo que ainda vão acontecer (hoje marcadas, amanhã desmarcadas)
   const chave = String(a.id).split('|').slice(0, 4).join('|');
