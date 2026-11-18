@@ -297,7 +297,7 @@
   </div>
   <div class="relogio" id="relogio">--:--:--</div>
   <div class="esp"></div>
-  <button class="btn som-off" id="btnSom" title="O navegador só toca som depois de um clique na página">🔇 Ativar som</button>
+  <button class="btn som-off" id="btnSom" style="display:none" title="O navegador só toca som depois de um clique na página">🔇 Ativar som</button>
   <button class="btn" id="btnTela" title="Tela cheia (ideal para a TV)">⛶ Tela cheia</button>
   <button class="btn" id="btnTema" title="Alternar modo claro/escuro">🌙 Modo noite</button>
   <button class="btn" id="btnAtualizar">Atualizar</button>
@@ -923,7 +923,9 @@ async function verificarAlertas(){
 
 /* ---------- som ---------- */
 let audio = null, sirene = null;
+const SOM_ALARME = false;   // alarme sem som (só pisca). Para voltar o som: true
 function ativarSom(){
+  if (!SOM_ALARME) return;
   try {
     audio = audio || new (window.AudioContext || window.webkitAudioContext)();
     if (audio.state === 'suspended') audio.resume();
@@ -942,8 +944,8 @@ function bip(freq, ini, dur){
 function tocar(){ if (audio && audio.state === 'running') { bip(880,0,.22); bip(660,.25,.22); bip(880,.5,.22); bip(660,.75,.22); } }
 function iniciarSirene(){
   pararSirene();
-  if (!audio || audio.state !== 'running') $('alSomAviso').textContent = 'Som desativado: clique em qualquer lugar para ativar.';
-  tocar(); sirene = setInterval(tocar, 1500);
+  if (SOM_ALARME && (!audio || audio.state !== 'running')) $('alSomAviso').textContent = 'Som desativado: clique em qualquer lugar para ativar.';
+  if (SOM_ALARME) { tocar(); sirene = setInterval(tocar, 1500); }
   piscarTitulo(true);
 }
 function pararSirene(){ clearInterval(sirene); sirene = null; piscarTitulo(false); }
